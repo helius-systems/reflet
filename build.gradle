@@ -1,0 +1,92 @@
+import com.vanniktech.maven.publish.JavadocJar
+
+plugins {
+    id "java-library"
+    id "com.vanniktech.maven.publish" version "0.35.0"
+    id "signing"
+    id "me.champeau.jmh" version "0.7.2"
+}
+
+group = "systems.helius"
+version = "0.1.0"
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+dependencies {
+    implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
+
+    testImplementation platform("org.junit:junit-bom:5.10.0")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+
+    testImplementation "io.github.sbeausoleil:factorium:2.1.0"
+    testImplementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
+    testCompileOnly "org.projectlombok:lombok:1.18.36"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.36"
+
+    jmhImplementation "org.openjdk.jmh:jmh-core:1.37"
+    jmhAnnotationProcessor "org.openjdk.jmh:jmh-generator-annprocess:1.37"
+    jmhCompileOnly( "org.projectlombok:lombok:1.18.36")
+    jmhAnnotationProcessor("org.projectlombok:lombok:1.18.36")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Do not use java-test-fixtures plugin as it causes the fixtures to be published to Maven Central.
+sourceSets {
+    jmh {
+        compileClasspath += sourceSets.test.output
+        runtimeClasspath += sourceSets.test.output
+    }
+}
+
+configurations {
+    jmhImplementation.extendsFrom(testImplementation)
+    jmhRuntimeOnly.extendsFrom(testRuntimeOnly)
+}
+
+mavenPublishing {
+    publishToMavenCentral()
+
+    coordinates(group, rootProject.name, version)
+
+    pom {
+        name = "Helius reflet"
+        description = "A common utilities library with a focus on reflective programming."
+        url = "https://github.com/helius-systems/reflet"
+        inceptionYear = "2024"
+        licenses {
+            license {
+                name = "MIT Licence"
+                url = "https://github.com/helius-systems/reflet/blob/master/LICENSE.md"
+            }
+        }
+        developers {
+            developer {
+                id = "samuelb"
+                name = "Samuel Beausoleil"
+                email = "sbeausoleil_dev@hotmail.com"
+                organization = "Independent"
+            }
+        }
+        scm {
+            connection = "scm:git:git://github.com/helius-systems/reflet.git"
+            developerConnection = "scm:git:ssh://github.com:helius-systems/reflet.git"
+            url = "https://github.com/helius-systems/reflet"
+        }
+    }
+
+    signAllPublications()
+    signing {
+        useGpgCmd()
+    }
+}
