@@ -60,7 +60,7 @@ mavenPublishing {
     coordinates(group, rootProject.name, version)
 
     pom {
-        name = "Helius reflet"
+        name = "reflet"
         description = "A common utilities library with a focus on reflective programming."
         url = "https://github.com/helius-systems/reflet"
         inceptionYear = "2024"

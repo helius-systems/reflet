@@ -1,7 +1,6 @@
 package systems.helius.reflet.reflection;
 
 import jakarta.annotation.Nullable;
-import systems.helius.reflet.exceptions.IntrospectionException;
 
 import java.io.Serial;
 import java.lang.reflect.Field;
@@ -78,17 +77,5 @@ public class TracedAccessException extends Exception {
      */
     public void setRoot(@Nullable Object root) {
         this.root = root;
-    }
-
-    /**
-     * Transform this traced exception back into a regular IllegalAccessException as if it happened at the location of this exception.
-     * @return an IllegalAccessException with a message detailing the path to the illegal access.
-     * @deprecated Use {@link IntrospectionException} instead, which is the official exception type for introspection errors in Helius reflet.
-     */
-    @Deprecated(since = "0.5.0") // Use IntrospectionException instead
-    public IllegalAccessException toIllegalAccessException() {
-        var exception = new IllegalAccessException(buildPath());
-        exception.setStackTrace(getStackTrace());
-        return exception;
     }
 }
