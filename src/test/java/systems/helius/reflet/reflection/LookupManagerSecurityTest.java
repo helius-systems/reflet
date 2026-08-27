@@ -7,12 +7,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Security-focused regression and mutation tests for {@link LookupManager}.
@@ -139,9 +134,9 @@ class LookupManagerSecurityTest {
     @Test
     void GivenLookupMissingPrivateMode_WhenCanAccess_ThenDenied() {
         Lookup noPrivate = FULL.dropLookupMode(Lookup.PRIVATE);
-        assertTrue((noPrivate.lookupModes() & Lookup.MODULE) != 0,
+        assertNotEquals(0, noPrivate.lookupModes() & Lookup.MODULE,
                 "precondition: the lookup still holds MODULE so this isolates the PRIVATE requirement");
-        assertFalse((noPrivate.lookupModes() & Lookup.PRIVATE) != 0,
+        assertEquals(0, noPrivate.lookupModes() & Lookup.PRIVATE,
                 "precondition: the lookup no longer holds PRIVATE");
 
         assertFalse(LookupManager.canAccess(Secret.class, noPrivate),
@@ -220,17 +215,11 @@ class LookupManagerSecurityTest {
     void GivenPrimedCache_WhenUnentitledCallerRequests_ThenNeverReceivesCachedInstance()
             throws LoookupAcquisitionException {
         LookupManager manager = new LookupManager();
-        Lookup cached = manager.getPrivilegedLookup(Secret.class, FULL); // the cached instance itself
+        manager.getPrivilegedLookup(Secret.class, FULL);
 
-        try {
-            Lookup leaked = manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup());
-            // If no exception was thrown, the only acceptable outcome would be a non-privileged lookup,
-            // but it must never be the cached privileged instance.
-            assertNotSame(cached, leaked, "the cached privileged lookup must never be leaked to an unentitled caller");
-            fail("an unentitled caller must be denied, not handed any lookup");
-        } catch (LoookupAcquisitionException expected) {
-            // Correct: the unentitled caller is denied outright.
-        }
+        assertThrows(LoookupAcquisitionException.class, () -> {
+            manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup());
+        }, "an unentitled caller must be denied, not handed any lookup");
     }
 
     /**

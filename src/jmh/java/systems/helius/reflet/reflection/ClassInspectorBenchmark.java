@@ -52,7 +52,6 @@ public class ClassInspectorBenchmark {
 
         @Setup(Level.Iteration)
         public void initialize() {
-            System.out.println("Initializing CachingClassInspector");
             inspector = new CachingClassInspector();
         }
     }
@@ -63,7 +62,6 @@ public class ClassInspectorBenchmark {
 
         @Setup(Level.Trial)
         public void initializeNotCaching() {
-            System.out.println("Initializing ClassInspector");
             inspector = new ClassInspector();
         }
     }

@@ -41,34 +41,38 @@ public class FieldHandlesAccessor implements ContentAccessor, ClassInspectorAwar
                 try {
                     classLookup = lookupManager.getPrivilegedLookup(entry.getKey(), context.rootLookup(), classLookup);
                 } catch (LoookupAcquisitionException e) {
-                    if (!settings.useSafeAccessCheck()) {
+                    if (!settings.useSafeAccessCheck()) { // TODO rename this parameter to be positive along "fail if inaccessible"
                         throw new ChainComponentException(e, true);
                     }
                     continue;
                 }
             }
 
-            for (Field field : entry.getValue()) {
-                try {
-                    if (Modifier.isStatic(field.getModifiers()))
-                        continue;
+            accessFields(current, settings, entry, classLookup, result);
+        }
+        return result;
+    }
 
-                    Object value = classLookup.unreflectVarHandle(field).get(current);
-                    if (value != null) {
-                        result.add(new Content(value, field));
-                    }
-                } catch (IllegalAccessException e) {
-                    if (!settings.useSafeAccessCheck()) {
-                        var traced = new TracedAccessException("Couldn't read the value of the field: " + field
-                                + ". This should be impossible. " +
-                                "Please file an issue at https://github.com/SBeausoleil/reflet/issues" +
-                                " describing how this happened.", e);
-                        throw new ChainComponentException(traced, true);
-                    }
+    private static void accessFields(Object current, IntrospectionSettings settings, Map.Entry<Class<?>, List<Field>> entry, MethodHandles.Lookup classLookup, ArrayList<Content> result) throws ChainComponentException {
+        for (Field field : entry.getValue()) {
+            try {
+                if (Modifier.isStatic(field.getModifiers()))
+                    continue;
+
+                Object value = classLookup.unreflectVarHandle(field).get(current);
+                if (value != null) {
+                    result.add(new Content(value, field));
+                }
+            } catch (IllegalAccessException e) {
+                if (!settings.useSafeAccessCheck()) {
+                    var traced = new TracedAccessException("Couldn't read the value of the field: " + field
+                            + ". This should be impossible. " +
+                            "Please file an issue at https://github.com/SBeausoleil/reflet/issues" +
+                            " describing how this happened.", e);
+                    throw new ChainComponentException(traced, true);
                 }
             }
         }
-        return result;
     }
 
     private MethodHandles.Lookup getClassLookup(Object current, IntrospectionContext<?> context) throws ChainComponentException {

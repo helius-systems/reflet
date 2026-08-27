@@ -15,7 +15,7 @@ public class TracedAccessException extends Exception {
     private static final long serialVersionUID = 1L;
 
     @Nullable
-    private Object root;
+    private Object root; // NOSONAR: May not be final as it is set right before exiting the boundaries of the search. Thrower does not know the root.
     private final Deque<Field> trace = new LinkedList<>();
 
     public TracedAccessException(String message) {

@@ -45,7 +45,7 @@ public class IntrospectionSettings {
 
     protected IntrospectionSettings(Builder b) {
         this.safeAccessCheck = b.safeAccessCheck;
-        this.skipOnException = b.skipOnException != null ? b.skipOnException : (e) -> false;
+        this.skipOnException = b.skipOnException != null ? b.skipOnException : e -> false;
         this.enterTargetType = b.enterTargetType;
         this.maxDepth = b.maxDepth;
         this.contentAccessor = b.contentAccessor;
