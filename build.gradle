@@ -1,3 +1,13 @@
+buildscript {
+    configurations {
+        classpath {
+            resolutionStrategy { // Fixes a transitive vulnerability in the publishing plugin.
+                force("com.squareup.okhttp3:okhttp:5.5.0")
+            }
+        }
+    }
+}
+
 plugins {
     id "java-library"
     id "com.vanniktech.maven.publish" version "0.35.0"
