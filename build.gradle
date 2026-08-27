@@ -13,6 +13,7 @@ plugins {
     id "com.vanniktech.maven.publish" version "0.35.0"
     id "signing"
     id "me.champeau.jmh" version "0.7.2"
+    id "jacoco"
 }
 
 group = "systems.helius"
@@ -47,6 +48,16 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = false
+        html.required = true
+    }
 }
 
 // Do not use java-test-fixtures plugin as it causes the fixtures to be published to Maven Central.
