@@ -5,7 +5,7 @@ import systems.helius.reflet.exceptions.LoookupAcquisitionException;
 import systems.helius.reflet.reflection.ClassInspector;
 import systems.helius.reflet.reflection.IntrospectionContext;
 import systems.helius.reflet.reflection.IntrospectionSettings;
-import systems.helius.reflet.reflection.internal.LookupManager;
+import systems.helius.reflet.reflection.LookupManager;
 import systems.helius.reflet.reflection.TracedAccessException;
 
 import java.lang.invoke.MethodHandles;

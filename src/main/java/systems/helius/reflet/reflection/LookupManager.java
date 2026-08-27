@@ -1,4 +1,4 @@
-package systems.helius.reflet.reflection.internal;
+package systems.helius.reflet.reflection;
 
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.exceptions.LoookupAcquisitionException;

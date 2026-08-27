@@ -1,4 +1,4 @@
-package systems.helius.reflet.reflection.internal;
+package systems.helius.reflet.reflection;
 
 import org.junit.jupiter.api.Test;
 import systems.helius.reflet.exceptions.LoookupAcquisitionException;
@@ -36,7 +36,6 @@ class LookupManagerSecurityTest {
 
     /** Full-power lookup of this (test) class; same module and nest as the sample types below. */
     private static final Lookup FULL = MethodHandles.lookup();
-
     /**
      * A representative matrix of targets covering primitives, arrays, interfaces, JDK classes in a
      * named module, and same-module application types (including enum and record forms).

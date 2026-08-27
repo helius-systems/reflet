@@ -2,7 +2,6 @@ package systems.helius.reflet.reflection;
 
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.exceptions.LoookupAcquisitionException;
-import systems.helius.reflet.reflection.internal.LookupManager;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
@@ -69,7 +68,6 @@ public sealed class ClassInspector permits CachingClassInspector {
      */
     public Map<Field, VarHandle> getAllFieldsHandles(Class<?> clazz, MethodHandles.Lookup context) throws IllegalAccessException {
         Map<Field, VarHandle> handles = new LinkedHashMap<>();
-        var inspector = new ClassInspector();
         MethodHandles.Lookup privilegedLookup = context;
         for (Map.Entry<Class<?>, List<Field>> fieldsByClass :  getAllFieldsHierarchical(clazz).entrySet()) {
             if (context.lookupClass() != fieldsByClass.getKey()) {
