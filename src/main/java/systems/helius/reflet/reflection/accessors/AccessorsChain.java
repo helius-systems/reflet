@@ -2,7 +2,7 @@ package systems.helius.reflet.reflection.accessors;
 
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.reflection.*;
-import systems.helius.reflet.reflection.internal.LookupManager;
+import systems.helius.reflet.reflection.LookupManager;
 
 import java.lang.reflect.Field;
 import java.util.*;
