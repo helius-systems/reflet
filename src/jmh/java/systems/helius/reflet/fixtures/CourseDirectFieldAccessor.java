@@ -1,10 +1,10 @@
 package systems.helius.reflet.fixtures;
 
-import systems.helius.reflet.reflection.IntrospectionContext;
-import systems.helius.reflet.reflection.IntrospectionSettings;
-import systems.helius.reflet.reflection.accessors.ChainComponentException;
-import systems.helius.reflet.reflection.accessors.Content;
-import systems.helius.reflet.reflection.accessors.ContentAccessor;
+import systems.helius.reflet.IntrospectionContext;
+import systems.helius.reflet.IntrospectionSettings;
+import systems.helius.reflet.accessors.ChainComponentException;
+import systems.helius.reflet.accessors.Content;
+import systems.helius.reflet.accessors.ContentAccessor;
 
 import jakarta.annotation.Nullable;
 import java.lang.reflect.Field;

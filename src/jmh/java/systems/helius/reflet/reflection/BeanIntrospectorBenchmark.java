@@ -12,6 +12,12 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import systems.helius.reflet.BeanIntrospector;
+import systems.helius.reflet.CachingClassInspector;
+import systems.helius.reflet.accessors.ArrayAccessor;
+import systems.helius.reflet.accessors.FieldHandlesAccessor;
+import systems.helius.reflet.accessors.IterativeAccessor;
+import systems.helius.reflet.accessors.IterativeMapAccessor;
 import systems.helius.reflet.exceptions.IntrospectionException;
 import systems.helius.reflet.fixtures.Classroom;
 import systems.helius.reflet.fixtures.ClassroomGenerator;
@@ -31,10 +37,10 @@ import java.util.concurrent.TimeUnit;
  * <p>The graph is built so that each multi-value field in the object graph is represented
  * at every one of the five canonical sizes: {@code 0} (empty), {@code 1} (single),
  * {@code 5}, {@code 15}, and {@code 30}. This ensures all four built-in accessors
- * ({@link systems.helius.reflet.reflection.accessors.ArrayAccessor},
- * {@link systems.helius.reflet.reflection.accessors.IterativeAccessor},
- * {@link systems.helius.reflet.reflection.accessors.IterativeMapAccessor}, and
- * {@link systems.helius.reflet.reflection.accessors.FieldHandlesAccessor}) are exercised
+ * ({@link ArrayAccessor},
+ * {@link IterativeAccessor},
+ * {@link IterativeMapAccessor}, and
+ * {@link FieldHandlesAccessor}) are exercised
  * many times per traversal.</p>
  *
  * <h2>Multi-value field size distribution</h2>

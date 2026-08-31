@@ -1,6 +1,6 @@
-package systems.helius.reflet.reflection;
+package systems.helius.reflet;
 
-import systems.helius.reflet.reflection.accessors.ContentAccessor;
+import systems.helius.reflet.accessors.ContentAccessor;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Set;

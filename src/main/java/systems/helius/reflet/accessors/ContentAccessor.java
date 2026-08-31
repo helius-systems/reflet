@@ -1,8 +1,8 @@
-package systems.helius.reflet.reflection.accessors;
+package systems.helius.reflet.accessors;
 
 import jakarta.annotation.Nullable;
-import systems.helius.reflet.reflection.IntrospectionContext;
-import systems.helius.reflet.reflection.IntrospectionSettings;
+import systems.helius.reflet.IntrospectionContext;
+import systems.helius.reflet.IntrospectionSettings;
 
 import java.lang.reflect.Field;
 import java.util.Collection;

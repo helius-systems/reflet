@@ -1,4 +1,4 @@
-package systems.helius.reflet.reflection.accessors;
+package systems.helius.reflet.accessors;
 
 /**
  * Exception thrown by components of a responsibility chain.

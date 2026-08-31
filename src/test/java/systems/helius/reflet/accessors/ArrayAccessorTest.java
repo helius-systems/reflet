@@ -1,4 +1,4 @@
-package systems.helius.reflet.reflection.accessors;
+package systems.helius.reflet.accessors;
 
 import org.junit.jupiter.api.Test;
 import systems.helius.reflet.fixtures.Foo;

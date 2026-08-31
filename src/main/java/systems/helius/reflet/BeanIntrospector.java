@@ -1,9 +1,9 @@
-package systems.helius.reflet.reflection;
+package systems.helius.reflet;
 
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.exceptions.IntrospectionException;
 
-import systems.helius.reflet.reflection.accessors.Content;
+import systems.helius.reflet.accessors.Content;
 
 import java.lang.reflect.Field;
 import java.util.*;

@@ -1,9 +1,8 @@
-package systems.helius.reflet.reflection.accessors;
+package systems.helius.reflet.accessors;
 
 import jakarta.annotation.Nullable;
+import systems.helius.reflet.*;
 import systems.helius.reflet.exceptions.LoookupAcquisitionException;
-import systems.helius.reflet.reflection.*;
-import systems.helius.reflet.reflection.LookupManager;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;

@@ -2,6 +2,8 @@ package systems.helius.reflet.reflection;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
+import systems.helius.reflet.CachingClassInspector;
+import systems.helius.reflet.ClassInspector;
 
 import java.util.concurrent.TimeUnit;
 

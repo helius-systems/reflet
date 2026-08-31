@@ -1,8 +1,10 @@
-package systems.helius.reflet.reflection.accessors;
+package systems.helius.reflet.accessors;
 
 import org.junit.jupiter.api.Test;
-import systems.helius.reflet.reflection.CachingClassInspector;
-import systems.helius.reflet.reflection.ClassInspector;
+import systems.helius.reflet.CachingClassInspector;
+import systems.helius.reflet.ClassInspector;
+import systems.helius.reflet.IntrospectionContext;
+import systems.helius.reflet.IntrospectionSettings;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -144,8 +146,8 @@ class AccessorsChainTest {
 
         @Override
         public Collection<Content> extract(Object current, java.lang.reflect.Field holdingField,
-                                           systems.helius.reflet.reflection.IntrospectionContext<?> context,
-                                           systems.helius.reflet.reflection.IntrospectionSettings settings) {
+                                           IntrospectionContext<?> context,
+                                           IntrospectionSettings settings) {
             return Collections.emptyList();
         }
     }

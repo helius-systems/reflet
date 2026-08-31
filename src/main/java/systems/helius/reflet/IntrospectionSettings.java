@@ -1,8 +1,8 @@
-package systems.helius.reflet.reflection;
+package systems.helius.reflet;
 
 import jakarta.annotation.Nullable;
-import systems.helius.reflet.reflection.accessors.AccessorsChain;
-import systems.helius.reflet.reflection.accessors.ContentAccessor;
+import systems.helius.reflet.accessors.AccessorsChain;
+import systems.helius.reflet.accessors.ContentAccessor;
 
 import java.util.function.Predicate;
 

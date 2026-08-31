@@ -1,6 +1,6 @@
-package systems.helius.reflet.reflection.accessors;
+package systems.helius.reflet.accessors;
 
-import systems.helius.reflet.reflection.ClassInspector;
+import systems.helius.reflet.ClassInspector;
 
 /**
  * Classes that implement this interface have a deep-rooted need to be kept in sync with the ClassInspector used by their context.

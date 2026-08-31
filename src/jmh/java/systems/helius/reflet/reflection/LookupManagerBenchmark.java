@@ -12,6 +12,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import systems.helius.reflet.LookupManager;
 import systems.helius.reflet.exceptions.LoookupAcquisitionException;
 
 import java.lang.invoke.MethodHandles;

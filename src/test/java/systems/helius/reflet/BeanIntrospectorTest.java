@@ -1,4 +1,4 @@
-package systems.helius.reflet.reflection;
+package systems.helius.reflet;
 
 import com.github.javafaker.Faker;
 import com.sb.factorium.FactoryProvider;

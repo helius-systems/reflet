@@ -1,12 +1,12 @@
-package systems.helius.reflet.reflection.accessors;
+package systems.helius.reflet.accessors;
 
 import org.junit.jupiter.api.Test;
 import systems.helius.reflet.exceptions.LoookupAcquisitionException;
-import systems.helius.reflet.reflection.ClassInspector;
-import systems.helius.reflet.reflection.IntrospectionContext;
-import systems.helius.reflet.reflection.IntrospectionSettings;
-import systems.helius.reflet.reflection.LookupManager;
-import systems.helius.reflet.reflection.TracedAccessException;
+import systems.helius.reflet.ClassInspector;
+import systems.helius.reflet.IntrospectionContext;
+import systems.helius.reflet.IntrospectionSettings;
+import systems.helius.reflet.LookupManager;
+import systems.helius.reflet.TracedAccessException;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;

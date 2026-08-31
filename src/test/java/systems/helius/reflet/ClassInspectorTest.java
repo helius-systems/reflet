@@ -1,4 +1,4 @@
-package systems.helius.reflet.reflection;
+package systems.helius.reflet;
 
 import org.junit.jupiter.api.Test;
 import systems.helius.reflet.fixtures.ChildClassA;
