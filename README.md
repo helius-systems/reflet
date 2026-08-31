@@ -1,5 +1,7 @@
 ![Static Badge](https://img.shields.io/badge/Java-17-green)
 ![Maven Central Version](https://img.shields.io/maven-central/v/systems.helius/helius-commons?color=blue)
+![Coverage](.github/badges/jacoco.svg)
+![Branches](.github/badges/branches.svg)
 
 # Reflet: A Reflective Java Library
 Reflet is a Java library that provides reflection and meta-programming utilities.
