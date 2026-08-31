@@ -5,6 +5,7 @@ import com.sb.factorium.FactoryProvider;
 import com.sb.factorium.RandomUtil;
 import com.sb.factorium.RecordingFactory;
 import com.sb.factorium.RecordingFactoryMaker;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import systems.helius.reflet.exceptions.IntrospectionException;
 import systems.helius.reflet.fixtures.*;
@@ -221,13 +222,13 @@ class BeanIntrospectorTest {
 
     @Test
     void WhenSeekMapContent_GivenMap_ThenCanReadValues() throws IntrospectionException {
-        List<String> toFind = faker.lorem().words(2);
+        List<String> toFind = List.of("Hello", "World", "Foo");
         var map = new HashMap<>();
         // Put noise in the map
         map.put(Math.random(), Math.random());
         map.put(Math.random(), Math.random());
-        map.put(Math.random(), Math.random());
         toFind.forEach(s -> map.put(Math.random() * 100, s));
+        map.put(Math.random(), Math.random());
 
         Set<String> found = new BeanIntrospector().seek(String.class, map, MethodHandles.lookup());
         assertEquals(toFind.size(), found.size());

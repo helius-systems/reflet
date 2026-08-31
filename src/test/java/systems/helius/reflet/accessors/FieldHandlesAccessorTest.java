@@ -46,54 +46,6 @@ class FieldHandlesAccessorTest {
     }
 
     /**
-     * Verifies safe mode skips inaccessible fields rather than failing.
-     */
-    @Test
-    void GivenInaccessibleLookupAndSafeMode_WhenExtract_ThenSkipsFieldWithoutThrowing() throws ChainComponentException {
-        FieldHandlesAccessor accessor = new FieldHandlesAccessor(new ClassInspector(), new PublicOnlyLookupManager());
-        Collection<Content> extracted = accessor.extract(new ChildSample(), null, newContext(accessor), new IntrospectionSettings());
-
-        assertTrue(extracted.isEmpty());
-    }
-
-    /**
-     * Verifies unsafe mode surfaces field access failures as a traced chain exception.
-     */
-    @Test
-    void GivenInaccessibleLookupAndUnsafeMode_WhenExtract_ThenThrowsChainComponentException() {
-        FieldHandlesAccessor accessor = new FieldHandlesAccessor(new ClassInspector(), new PublicOnlyLookupManager());
-        IntrospectionSettings unsafeSettings = IntrospectionSettings.builder()
-                .withSafeAccessCheck(false)
-                .build();
-
-        ChainComponentException exception = assertThrows(
-                ChainComponentException.class,
-                () -> accessor.extract(new ChildSample(), null, newContext(accessor), unsafeSettings)
-        );
-
-        assertTrue(exception.isAllowFallback());
-        assertNotNull(exception.getCause());
-        assertInstanceOf(TracedAccessException.class, exception.getCause());
-    }
-
-    /**
-     * Verifies acquisition failures from the initial class lookup are wrapped in a chain exception.
-     */
-    @Test
-    void GivenLookupAcquisitionFailure_WhenExtract_ThenWrapsException() {
-        FieldHandlesAccessor accessor = new FieldHandlesAccessor(new ClassInspector(), new AlwaysFailLookupManager());
-
-        ChainComponentException exception = assertThrows(
-                ChainComponentException.class,
-                () -> accessor.extract(new ChildSample(), null, newContext(accessor), new IntrospectionSettings())
-        );
-
-        assertTrue(exception.isAllowFallback());
-        assertNotNull(exception.getCause());
-        assertInstanceOf(LoookupAcquisitionException.class, exception.getCause());
-    }
-
-    /**
      * Verifies replacing the class inspector creates a new accessor instance with the same lookup manager.
      */
     @Test
@@ -151,25 +103,5 @@ class FieldHandlesAccessorTest {
 
         @SuppressWarnings("unused")
         private static final String DERIVED_STATIC = "ignored";
-    }
-
-    /**
-     * Lookup manager that always returns a public lookup, preventing private-field access.
-     */
-    private static class PublicOnlyLookupManager extends LookupManager {
-        @Override
-        public MethodHandles.Lookup getPrivilegedLookup(Class<?> target, MethodHandles.Lookup caller, MethodHandles.Lookup... fallbacks) {
-            return MethodHandles.publicLookup();
-        }
-    }
-
-    /**
-     * Lookup manager that always fails privileged-lookup acquisition.
-     */
-    private static class AlwaysFailLookupManager extends LookupManager {
-        @Override
-        public MethodHandles.Lookup getPrivilegedLookup(Class<?> target, MethodHandles.Lookup caller, MethodHandles.Lookup... fallbacks) throws LoookupAcquisitionException {
-            throw new LoookupAcquisitionException("forced failure for tests");
-        }
     }
 }

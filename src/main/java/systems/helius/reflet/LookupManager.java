@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Instances are thread-safe.</p>
  */
-public class LookupManager {
+public final class LookupManager {
 
     /**
      * Access modes that {@link MethodHandles#privateLookupIn(Class, Lookup)} requires of its caller
