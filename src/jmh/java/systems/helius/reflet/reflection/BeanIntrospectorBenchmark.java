@@ -172,7 +172,7 @@ public class BeanIntrospectorBenchmark {
          */
         @Setup(Level.Trial)
         public void initialize() {
-            introspector = new BeanIntrospector(new CachingClassInspector());
+            introspector = new BeanIntrospector();
         }
     }
 }

@@ -105,7 +105,6 @@ public class AccessorsChain implements ContentAccessor {
 
     public static class Builder {
         protected final LinkedList<ContentAccessor> chain = new LinkedList<>();
-        protected ClassInspector classInspector;
         protected FieldHandlesAccessor lastResortAccessor;
         protected boolean lastResortEnabled = false;
 
@@ -129,7 +128,6 @@ public class AccessorsChain implements ContentAccessor {
          */
         public Builder(boolean withDefaults) {
             var lookupManager = new LookupManager();
-            this.classInspector = new ClassInspector(lookupManager);
             this.lastResortAccessor = new FieldHandlesAccessor(new CachingClassInspector(lookupManager), lookupManager);
             if (withDefaults) {
                 this.chain.add(new ArrayAccessor());
@@ -137,38 +135,6 @@ public class AccessorsChain implements ContentAccessor {
                 this.chain.add(new IterativeMapAccessor());
                 this.lastResortEnabled = true;
             }
-        }
-
-        /**
-         * Sets the ClassInspector to be used by all chain elements that require it.
-         * This will replace the ClassInspector in all existing ClassInspectorAware elements in the chain with the new one.
-         *
-         * @param classInspector the ClassInspector to set
-         * @return this builder for chaining
-         * @throws IllegalStateException if any ClassInspectorAware element's replaceClassInspector method does not return a ContentAccessor
-         */
-        public Builder setClassInspector(ClassInspector classInspector) {
-            this.classInspector = classInspector;
-
-            // Update ClassInspectorAware content accessors
-            ListIterator<ContentAccessor> iterator = chain.listIterator();
-            while (iterator.hasNext()) {
-                ContentAccessor chainElement = iterator.next();
-                if (chainElement instanceof ClassInspectorAware<?> aware) {
-                    Object replacement = aware.replaceClassInspector(classInspector);
-                    if (!(replacement instanceof ContentAccessor)) {
-                        throw new IllegalStateException(
-                                "replaceClassInspector on " + chainElement.getClass().getName()
-                                        + " returned " + (replacement == null ? "null" : replacement.getClass().getName())
-                                        + ", which is not a ContentAccessor");
-                    }
-                    iterator.set((ContentAccessor) replacement);
-                }
-            }
-
-            // Update the last resort accessor
-            lastResortAccessor = lastResortAccessor.replaceClassInspector(classInspector);
-            return this;
         }
 
         /**
@@ -235,7 +201,7 @@ public class AccessorsChain implements ContentAccessor {
         }
 
         /**
-         * Inserts before the given type, or at the END if not found.
+         * Inserts before the given type.
          */
         public Builder insertBefore(ContentAccessor accessor, Class<? extends ContentAccessor> beforeClass) {
             ListIterator<ContentAccessor> it = chain.listIterator();
@@ -246,12 +212,11 @@ public class AccessorsChain implements ContentAccessor {
                     return this;
                 }
             }
-            chain.addLast(accessor); // fallback: add at end
-            return this;
+            throw new IllegalStateException("Could not find accessor of type " + beforeClass.getSimpleName() + " in chain to insert before");
         }
 
         /**
-         * Inserts after the given type, or at the END if not found.
+         * Inserts after the given type.
          */
         public Builder insertAfter(ContentAccessor accessor, Class<? extends ContentAccessor> afterClass) {
             ListIterator<ContentAccessor> it = chain.listIterator();
@@ -261,8 +226,7 @@ public class AccessorsChain implements ContentAccessor {
                     return this;
                 }
             }
-            chain.addLast(accessor);
-            return this;
+            throw new IllegalStateException("Could not find accessor of type " + afterClass.getSimpleName() + " in chain to insert after");
         }
 
         /**

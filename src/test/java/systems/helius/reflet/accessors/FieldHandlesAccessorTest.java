@@ -1,12 +1,10 @@
 package systems.helius.reflet.accessors;
 
 import org.junit.jupiter.api.Test;
-import systems.helius.reflet.exceptions.LoookupAcquisitionException;
 import systems.helius.reflet.ClassInspector;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
 import systems.helius.reflet.LookupManager;
-import systems.helius.reflet.TracedAccessException;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -43,28 +41,6 @@ class FieldHandlesAccessorTest {
         assertEquals(2, extracted.size());
         assertEquals(Set.of("child-value", 7), extracted.stream().map(Content::value).collect(java.util.stream.Collectors.toSet()));
         assertEquals(Set.of("childValue", "baseNumber"), extracted.stream().map(content -> content.holdingField().getName()).collect(java.util.stream.Collectors.toSet()));
-    }
-
-    /**
-     * Verifies replacing the class inspector creates a new accessor instance with the same lookup manager.
-     */
-    @Test
-    void GivenNewClassInspector_WhenReplaceClassInspector_ThenReturnsNewAccessorWithSameLookupManager() throws ReflectiveOperationException {
-        LookupManager lookupManager = new LookupManager();
-        FieldHandlesAccessor accessor = new FieldHandlesAccessor(new ClassInspector(), lookupManager);
-        ClassInspector replacementInspector = new ClassInspector();
-
-        FieldHandlesAccessor replaced = accessor.replaceClassInspector(replacementInspector);
-
-        assertNotSame(accessor, replaced);
-
-        Field classInspectorField = FieldHandlesAccessor.class.getDeclaredField("classInspector");
-        classInspectorField.setAccessible(true);
-        assertSame(replacementInspector, classInspectorField.get(replaced));
-
-        Field lookupManagerField = FieldHandlesAccessor.class.getDeclaredField("lookupManager");
-        lookupManagerField.setAccessible(true);
-        assertSame(lookupManager, lookupManagerField.get(replaced));
     }
 
     /**

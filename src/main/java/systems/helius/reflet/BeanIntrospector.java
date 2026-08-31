@@ -12,7 +12,6 @@ import static java.lang.invoke.MethodHandles.Lookup;
 
 public class BeanIntrospector {
     protected final IntrospectionSettings settings;
-    protected final ClassInspector classInspector;
 
     public BeanIntrospector() {
         this(null, null);
@@ -22,13 +21,8 @@ public class BeanIntrospector {
         this(settings, null);
     }
 
-    public BeanIntrospector(ClassInspector classInspector) {
-        this(null, classInspector);
-    }
-
     public BeanIntrospector(@Nullable IntrospectionSettings settings, @Nullable ClassInspector classInspector) {
         this.settings = Objects.requireNonNullElseGet(settings, IntrospectionSettings::new);
-        this.classInspector = Objects.requireNonNullElseGet(classInspector, CachingClassInspector::new);
     }
 
     /**

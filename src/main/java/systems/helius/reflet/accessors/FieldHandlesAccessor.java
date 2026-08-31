@@ -12,7 +12,7 @@ import java.util.*;
 /**
  * Accessor that uses Fields and VarHandles to access fields of classes directly.
  */
-public class FieldHandlesAccessor implements ContentAccessor, ClassInspectorAware<FieldHandlesAccessor> {
+public class FieldHandlesAccessor implements ContentAccessor {
     private final ClassInspector classInspector;
     private final LookupManager lookupManager;
 
@@ -66,7 +66,7 @@ public class FieldHandlesAccessor implements ContentAccessor, ClassInspectorAwar
                 if (!settings.useSafeAccessCheck()) {
                     var traced = new TracedAccessException("Couldn't read the value of the field: " + field
                             + ". This should be impossible. " +
-                            "Please file an issue at https://github.com/SBeausoleil/reflet/issues" +
+                            "Please file an issue at https://github.com/helius-systems/reflet/issues" +
                             " describing how this happened.", e);
                     throw new ChainComponentException(traced, true);
                 }
@@ -80,10 +80,5 @@ public class FieldHandlesAccessor implements ContentAccessor, ClassInspectorAwar
         } catch (LoookupAcquisitionException e) {
             throw new ChainComponentException(e, true);
         }
-    }
-
-    @Override
-    public FieldHandlesAccessor replaceClassInspector(ClassInspector classInspector) {
-        return new FieldHandlesAccessor(classInspector, this.lookupManager);
     }
 }

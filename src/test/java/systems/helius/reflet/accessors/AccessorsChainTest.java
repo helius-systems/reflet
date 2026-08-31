@@ -1,8 +1,6 @@
 package systems.helius.reflet.accessors;
 
 import org.junit.jupiter.api.Test;
-import systems.helius.reflet.CachingClassInspector;
-import systems.helius.reflet.ClassInspector;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
 
@@ -67,37 +65,6 @@ class AccessorsChainTest {
     }
 
     /**
-     * Verifies that calling setClassInspector updates every class-inspector-aware accessor in the builder.
-     */
-    @Test
-    void GivenClassInspectorAwareAccessors_WhenSetClassInspector_ThenAllAccessorsReceiveReplacementInspector() {
-        ClassInspector originalInspector = new CachingClassInspector();
-        ClassInspector replacementInspector = new ClassInspector();
-        InspectableAccessor firstAccessor = new InspectableAccessor("first", originalInspector);
-        InspectableAccessor secondAccessor = new InspectableAccessor("second", originalInspector);
-
-        AccessorsChain chain = AccessorsChain.builder(true)
-                .addFirst(firstAccessor)
-                .addLast(secondAccessor)
-                .setClassInspector(replacementInspector)
-                .build();
-
-        List<ContentAccessor> accessors = accessorChain(chain);
-
-        InspectableAccessor builtFirst = (InspectableAccessor) accessors.get(0);
-        InspectableAccessor builtSecond = (InspectableAccessor) accessors.get(4);
-        FieldHandlesAccessor builtLastResort = (FieldHandlesAccessor) accessors.get(5);
-
-        assertAll(
-                () -> assertNotSame(firstAccessor, builtFirst),
-                () -> assertNotSame(secondAccessor, builtSecond),
-                () -> assertSame(replacementInspector, builtFirst.classInspector()),
-                () -> assertSame(replacementInspector, builtSecond.classInspector()),
-                () -> assertSame(replacementInspector, fieldInspector(builtLastResort))
-        );
-    }
-
-    /**
      * Reads the accessor classes from the built chain.
      */
     private static List<Class<?>> accessorTypes(AccessorsChain chain) {
@@ -119,19 +86,6 @@ class AccessorsChainTest {
             return (List<ContentAccessor>) chainField.get(chain);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to inspect AccessorsChain", e);
-        }
-    }
-
-    /**
-     * Reads the private class inspector field from {@link FieldHandlesAccessor}.
-     */
-    private static ClassInspector fieldInspector(FieldHandlesAccessor accessor) {
-        try {
-            Field field = FieldHandlesAccessor.class.getDeclaredField("classInspector");
-            field.setAccessible(true);
-            return (ClassInspector) field.get(accessor);
-        } catch (ReflectiveOperationException e) {
-            throw new AssertionError("Unable to inspect FieldHandlesAccessor", e);
         }
     }
 
@@ -170,26 +124,52 @@ class AccessorsChainTest {
     private static final class ZetaAccessor extends NoopAccessor {
     }
 
-    /**
-     * Class-inspector-aware test accessor that returns a replacement instance when updated.
-     */
-    private static final class InspectableAccessor extends NoopAccessor implements ClassInspectorAware<InspectableAccessor> {
-        private final String name;
-        private final ClassInspector classInspector;
+    @Test
+    void GivenBuilder_WhenTogglingIteratorAccessors_ThenChainAddsAndRemovesExpectedAccessors() {
+        AccessorsChain.Builder iterableBuilder = AccessorsChain.builder(false);
+        iterableBuilder.iterateOverIterables(true);
+        assertEquals(List.of(IterativeAccessor.class), accessorTypes(iterableBuilder.build()));
+        iterableBuilder.iterateOverIterables(false);
+        assertEquals(List.of(), accessorTypes(iterableBuilder.build()));
 
-        private InspectableAccessor(String name, ClassInspector classInspector) {
-            this.name = name;
-            this.classInspector = classInspector;
-        }
+        AccessorsChain.Builder mapBuilder = AccessorsChain.builder(false);
+        mapBuilder.iterateOverMapEntries(true);
+        assertEquals(List.of(IterativeMapAccessor.class), accessorTypes(mapBuilder.build()));
+        mapBuilder.iterateOverMapEntries(false);
+        assertEquals(List.of(), accessorTypes(mapBuilder.build()));
 
-        @Override
-        public InspectableAccessor replaceClassInspector(ClassInspector classInspector) {
-            return new InspectableAccessor(name, classInspector);
-        }
+        AccessorsChain.Builder arrayBuilder = AccessorsChain.builder(false);
+        arrayBuilder.iterateOverArrays(true);
+        assertEquals(List.of(ArrayAccessor.class), accessorTypes(arrayBuilder.build()));
+        arrayBuilder.iterateOverArrays(false);
+        assertEquals(List.of(), accessorTypes(arrayBuilder.build()));
+    }
 
-        private ClassInspector classInspector() {
-            return classInspector;
-        }
+    @Test
+    void GivenBuilder_WhenReplaceOrAddAtEndMatchesExistingAccessor_ThenItReplacesInPlace() {
+        AccessorsChain.Builder builder = AccessorsChain.builder(false)
+                .addLast(new AlphaAccessor())
+                .addLast(new BetaAccessor());
+
+        assertSame(builder, builder.replaceOrAddAtEnd(BetaAccessor.class, new EpsilonAccessor()));
+        assertEquals(List.of(AlphaAccessor.class, EpsilonAccessor.class), accessorTypes(builder.build()));
+    }
+
+    @Test
+    void GivenBuilder_WhenInsertTargetIsMissing_ThenInsertionThrows() {
+        AccessorsChain.Builder builder = AccessorsChain.builder(false);
+
+        IllegalStateException missingBefore = assertThrows(
+                IllegalStateException.class,
+                () -> builder.insertBefore(new AlphaAccessor(), BetaAccessor.class)
+        );
+        assertTrue(missingBefore.getMessage().contains(BetaAccessor.class.getSimpleName()));
+
+        IllegalStateException missingAfter = assertThrows(
+                IllegalStateException.class,
+                () -> builder.insertAfter(new AlphaAccessor(), BetaAccessor.class)
+        );
+        assertTrue(missingAfter.getMessage().contains(BetaAccessor.class.getSimpleName()));
     }
 
 }
