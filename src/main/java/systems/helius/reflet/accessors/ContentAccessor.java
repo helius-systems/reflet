@@ -3,6 +3,7 @@ package systems.helius.reflet.accessors;
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
+import systems.helius.reflet.exceptions.AccessorException;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -27,6 +28,8 @@ public interface ContentAccessor {
      * <p>
      * There may be more than one Content instance per field, and thus multiple values for a single field.
      * This is particularly relevant for collections and the likes.
+     * <p>
+     * Static fields should be ignored, as they are not part of the instance's content.
      *
      * @param current      the current value to access the innards of.
      * @param holdingField the field that contained the current value.
@@ -36,12 +39,10 @@ public interface ContentAccessor {
      * @return a collection of the values within the current object.
      * This collection is not obligated to represent every single field within the object,
      * it contains what matters to look into.
-     * @throws ChainComponentException an extraction is authorized to fail.
-     *                                 The accessor must indicate whether the introspector
-     *                                 is allowed to try other accessors for the same value.
+     * @throws AccessorException in case of failure.
      */
     Collection<Content> extract(Object current,
                                 @Nullable Field holdingField,
                                 IntrospectionContext<?> context,
-                                IntrospectionSettings settings) throws ChainComponentException;
+                                IntrospectionSettings settings) throws AccessorException;
 }

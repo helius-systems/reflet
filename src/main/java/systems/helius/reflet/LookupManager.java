@@ -2,12 +2,14 @@ package systems.helius.reflet;
 
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.exceptions.LoookupAcquisitionException;
+import systems.helius.reflet.util.Result;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * Resolves privileged (private-level) {@link Lookup}s on target classes so that reflective
@@ -60,29 +62,26 @@ public final class LookupManager {
      * @param caller    the lookup of the caller or, ideally, of the target class itself.
      * @param fallbacks (optional) fallback lookups that may be tried, such as the original context of
      *                  the request. Used as a backup when the caller may not grant privileged access.
-     * @return a privileged lookup on {@code target}.
-     * @throws LoookupAcquisitionException if neither the caller nor any fallback can grant private
-     *                                     access to {@code target}.
+     * @return a {@link Result} containing either a privileged lookup on {@code target} or a denial message supplier.
      */
-    public Lookup getPrivilegedLookup(Class<?> target, Lookup caller, Lookup... fallbacks)
-            throws LoookupAcquisitionException {
+    public Result<Lookup, Supplier<String>> getPrivilegedLookup(Class<?> target, Lookup caller, Lookup... fallbacks) {
         // Read the cache once: a memoized lookup is full-power and valid for every entitled caller.
         Lookup cached = privilegedLookups.get(target);
 
         Lookup result = tryAcquire(target, caller, cached);
         if (result != null) {
-            return result;
+            return Result.ok(result);
         }
         if (fallbacks != null) {
             for (Lookup fallback : fallbacks) {
                 result = tryAcquire(target, fallback, cached);
                 if (result != null) {
-                    return result;
+                    return Result.ok(result);
                 }
             }
         }
 
-        throw new LoookupAcquisitionException(buildDenialMessage(target, caller, fallbacks));
+        return Result.err(() -> buildDenialMessage(target, caller, fallbacks));
     }
 
     /**

@@ -2,11 +2,13 @@ package systems.helius.reflet;
 
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.exceptions.LoookupAcquisitionException;
+import systems.helius.reflet.util.Result;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Supplier;
 
 public sealed class ClassInspector permits CachingClassInspector {
     protected final LookupManager lookupManager;
@@ -72,11 +74,12 @@ public sealed class ClassInspector permits CachingClassInspector {
         for (Map.Entry<Class<?>, List<Field>> fieldsByClass :  getAllFieldsHierarchical(clazz).entrySet()) {
             if (context.lookupClass() != fieldsByClass.getKey()) {
                 // This grants access to the private fields within superclasses
-                try {
-                    privilegedLookup = lookupManager.getPrivilegedLookup(fieldsByClass.getKey(), context, privilegedLookup);
-                } catch (LoookupAcquisitionException e) {
-                    throw new IllegalAccessException("Couldn't get private access to the class: " + fieldsByClass.getKey().getCanonicalName() + ". " + e.getMessage());
-                }
+                    Result<MethodHandles.Lookup, Supplier<String>> result = lookupManager.getPrivilegedLookup(fieldsByClass.getKey(), context, privilegedLookup);
+                    if (result.isOk()) {
+                        privilegedLookup = result.value().orElseThrow();
+                    } else {
+                        throw new IllegalAccessException("Couldn't get private access to the class: " + fieldsByClass.getKey().getCanonicalName() + ". " + result.error().orElseThrow());
+                    }
             }
             for (Field field : fieldsByClass.getValue()) {
                 handles.put(field, privilegedLookup.unreflectVarHandle(field));

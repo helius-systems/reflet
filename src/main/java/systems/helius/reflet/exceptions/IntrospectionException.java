@@ -1,7 +1,5 @@
 package systems.helius.reflet.exceptions;
 
-import systems.helius.reflet.TracedAccessException;
-
 /**
  * An exception thrown when an introspection has a fatal failure.
  */

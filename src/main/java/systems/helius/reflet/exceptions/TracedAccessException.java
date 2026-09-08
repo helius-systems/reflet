@@ -1,4 +1,4 @@
-package systems.helius.reflet;
+package systems.helius.reflet.exceptions;
 
 import jakarta.annotation.Nullable;
 
@@ -50,7 +50,7 @@ public class TracedAccessException extends Exception {
         if (root != null) {
             sb.append("[root]: ");
             sb.append(root.getClass().getCanonicalName());
-            sb.append(": ");
+            sb.append(":\n -> ");
             sb.append(root);
         }
         for (Field step : trace) {

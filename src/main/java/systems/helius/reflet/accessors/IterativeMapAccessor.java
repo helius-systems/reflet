@@ -3,10 +3,14 @@ package systems.helius.reflet.accessors;
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
+import systems.helius.reflet.exceptions.AccessorException;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
+/**
+ * Accessor specialized for {@link Map} values.
+ */
 public class IterativeMapAccessor implements ContentAccessor {
     @Override
     public boolean accepts(Class<?> current, @Nullable Field holdingField) {
@@ -14,7 +18,7 @@ public class IterativeMapAccessor implements ContentAccessor {
     }
 
     @Override
-    public Collection<Content> extract(Object current, @Nullable Field holdingField, IntrospectionContext<?> context, IntrospectionSettings settings) throws ChainComponentException {
+    public Collection<Content> extract(Object current, @Nullable Field holdingField, IntrospectionContext<?> context, IntrospectionSettings settings) {
         Map<?, ?> map = (Map<?, ?>) current;
         var content = new ArrayList<Content>(map.size() * 2);
         for (Map.Entry<?, ?> entry : map.entrySet()) {

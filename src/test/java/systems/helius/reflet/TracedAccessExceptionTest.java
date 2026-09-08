@@ -1,6 +1,7 @@
 package systems.helius.reflet;
 
 import org.junit.jupiter.api.Test;
+import systems.helius.reflet.exceptions.TracedAccessException;
 
 import java.lang.reflect.Field;
 

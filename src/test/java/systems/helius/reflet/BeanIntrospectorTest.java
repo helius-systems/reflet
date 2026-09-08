@@ -238,7 +238,7 @@ class BeanIntrospectorTest {
     @Test
     void WhenSeekMapContent_GivenUseUnsafeAccessAndOutOfModuleCode_ThenFail() {
         var settings = IntrospectionSettings.builder()
-                .withSafeAccessCheck(false)
+                .withAccessDenialPolicy(AccessDenialPolicy.FAIL)
                 .build();
         var introspector = new BeanIntrospector(settings);
         var map = new HashMap<String, Boolean>();

@@ -2,7 +2,7 @@ package systems.helius.reflet.fixtures;
 
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
-import systems.helius.reflet.accessors.ChainComponentException;
+import systems.helius.reflet.exceptions.AccessorException;
 import systems.helius.reflet.accessors.Content;
 import systems.helius.reflet.accessors.ContentAccessor;
 
@@ -49,7 +49,7 @@ public class CourseDirectFieldAccessor implements ContentAccessor {
     public Collection<Content> extract(Object current,
                                        @Nullable Field holdingField,
                                        IntrospectionContext<?> context,
-                                       IntrospectionSettings settings) throws ChainComponentException {
+                                       IntrospectionSettings settings) throws AccessorException {
         Course course = (Course) current;
         List<Content> contents = new ArrayList<>(5);
         contents.add(new Content(course.title, TITLE_FIELD));

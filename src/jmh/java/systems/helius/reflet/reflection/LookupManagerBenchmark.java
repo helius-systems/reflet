@@ -13,7 +13,6 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import systems.helius.reflet.LookupManager;
-import systems.helius.reflet.exceptions.LoookupAcquisitionException;
 
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.TimeUnit;
@@ -46,10 +45,9 @@ public class LookupManagerBenchmark {
      *
      * @param state per-trial benchmark state.
      * @param bh    JMH sink to prevent dead-code elimination.
-     * @throws LoookupAcquisitionException never for the accessible target.
      */
     @Benchmark
-    public void resolveAccessibleCached(ManagerState state, Blackhole bh) throws LoookupAcquisitionException {
+    public void resolveAccessibleCached(ManagerState state, Blackhole bh) {
         bh.consume(state.manager.getPrivilegedLookup(Accessible.class, LOOKUP));
     }
 
@@ -61,11 +59,7 @@ public class LookupManagerBenchmark {
      */
     @Benchmark
     public void resolveDenied(ManagerState state, Blackhole bh) {
-        try {
-            bh.consume(state.manager.getPrivilegedLookup(Integer.class, LOOKUP));
-        } catch (LoookupAcquisitionException denied) {
-            bh.consume(denied);
-        }
+        bh.consume(state.manager.getPrivilegedLookup(Integer.class, LOOKUP));
     }
 
     /**
@@ -78,11 +72,9 @@ public class LookupManagerBenchmark {
 
         /**
          * Initializes and primes the manager once per trial.
-         *
-         * @throws LoookupAcquisitionException never for the accessible target.
          */
         @Setup(Level.Trial)
-        public void initialize() throws LoookupAcquisitionException {
+        public void initialize() {
             manager = new LookupManager();
             manager.getPrivilegedLookup(Accessible.class, LOOKUP); // prime the cache
         }

@@ -1,7 +1,7 @@
 package systems.helius.reflet;
 
 import jakarta.annotation.Nullable;
-import systems.helius.reflet.exceptions.IntrospectionException;
+import systems.helius.reflet.exceptions.*;
 
 import systems.helius.reflet.accessors.Content;
 
@@ -80,8 +80,19 @@ public class BeanIntrospector {
         Collection<Content> content = null;
         try {
             content = context.contentAccessor().extract(current, holdingField, context, settings);
-        } catch (Exception e) {
-            if (!settings.useSafeAccessCheck()) {
+        } catch (AccessorException | RuntimeException e) {
+            if (e instanceof AccessorException ae && ae.isFatal()) {
+                var traced = new TracedAccessException(e);
+                traced.addStep(holdingField);
+                throw traced;
+            }
+            var exceptionContext = new ExceptionContext(e, current, holdingField, context.targetType(), ExceptionContext.Origin.DESCENT);
+            ExceptionResolution resolution = settings.getExceptionHandler().handle(exceptionContext);
+            if (resolution instanceof ExceptionResolution.Skip) {
+                content = Collections.emptyList();
+            } else if (resolution instanceof ExceptionResolution.Substitute substitute) {
+                content = substitute.value();
+            } else { // Propagate
                 var traced = new TracedAccessException(e);
                 traced.addStep(holdingField);
                 throw traced;
@@ -94,7 +105,12 @@ public class BeanIntrospector {
         final int currentDepth = depth + 1;
         for (Content c : content) {
             if (c == null) continue;
-            depthFirstSearch(c.value(), c.holdingField(), currentDepth, context, settings);
+            try {
+                depthFirstSearch(c.value(), c.holdingField(), currentDepth, context, settings);
+            } catch (TracedAccessException e) {
+                e.addStep(holdingField);
+                throw e;
+            }
         }
     }
 }

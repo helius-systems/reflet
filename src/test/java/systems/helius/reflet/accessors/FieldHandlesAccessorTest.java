@@ -5,9 +5,9 @@ import systems.helius.reflet.ClassInspector;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
 import systems.helius.reflet.LookupManager;
+import systems.helius.reflet.exceptions.AccessorException;
 
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,7 +32,7 @@ class FieldHandlesAccessorTest {
      * Verifies extraction reads inherited instance fields while ignoring static and null-valued fields.
      */
     @Test
-    void GivenInheritedObject_WhenExtract_ThenReturnsOnlyNonNullInstanceFields() throws ChainComponentException {
+    void GivenInheritedObject_WhenExtract_ThenReturnsOnlyNonNullInstanceFields() throws AccessorException {
         FieldHandlesAccessor accessor = new FieldHandlesAccessor(new ClassInspector(), new LookupManager());
         ChildSample sample = new ChildSample();
 

@@ -13,7 +13,6 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import systems.helius.reflet.BeanIntrospector;
-import systems.helius.reflet.CachingClassInspector;
 import systems.helius.reflet.accessors.ArrayAccessor;
 import systems.helius.reflet.accessors.FieldHandlesAccessor;
 import systems.helius.reflet.accessors.IterativeAccessor;
@@ -124,25 +123,20 @@ public class BeanIntrospectorBenchmark {
         public void setupSchool() {
             school = schoolGenerator.generate();
 
-            // Clear collections created by generate() so we control sizes precisely.
             school.getStudents().clear();
             school.getTeachers().clear();
             school.getClassrooms().clear();
             school.getDepartments().clear();
 
-            // ── School-level multi-value fields ──────────────────────────────────────
-            school.setSemesterYears(new int[0]);         // EMPTY  (size 0)
-            schoolGenerator.addStudents(school, 1);      // SINGLE (size 1)
-            schoolGenerator.addTeachers(school, 5);      // size 5
+            school.setSemesterYears(new int[0]);
+            schoolGenerator.addStudents(school, 1);
+            schoolGenerator.addTeachers(school, 5);
 
-            // ── 5 Classrooms, one per canonical size ─────────────────────────────────
             for (int i = 0; i < SIZES.length; i++) {
                 int size = SIZES[i];
                 Classroom classroom = classroomGenerator.generateWithSizes(size, size, size);
 
-                // Distribute Course-level sizes across the 5 courses in Classroom[2].
                 if (i == 2) {
-                    // Replace the uniformly-sized courses with ones covering all five sizes.
                     classroom.getCourses().clear();
                     for (int courseSize : SIZES) {
                         classroom.getCourses().add(courseGenerator.generateWithSizes(courseSize, courseSize, courseSize));
@@ -152,7 +146,6 @@ public class BeanIntrospectorBenchmark {
                 school.getClassrooms().add(classroom);
             }
 
-            // ── 5 Departments, one per canonical size ────────────────────────────────
             for (int size : SIZES) {
                 Department dept = departmentGenerator.generateWithSizes(size, size, size);
                 school.getDepartments().put(dept.getName(), dept);

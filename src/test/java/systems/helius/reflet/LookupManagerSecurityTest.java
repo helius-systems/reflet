@@ -1,7 +1,6 @@
 package systems.helius.reflet;
 
 import org.junit.jupiter.api.Test;
-import systems.helius.reflet.exceptions.LoookupAcquisitionException;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -175,66 +174,54 @@ class LookupManagerSecurityTest {
      * {@link LookupManager#canAccess(Class, Lookup)} in {@code tryAcquire}. If the gate is removed or
      * reordered, the unentitled caller would receive the cached privileged lookup instead of being
      * denied.</p>
-     *
-     * @throws LoookupAcquisitionException never while priming the cache.
      */
     @Test
-    void GivenPrimedCache_WhenUnentitledPublicCallerRequests_ThenDenied() throws LoookupAcquisitionException {
+    void GivenPrimedCache_WhenUnentitledPublicCallerRequests_ThenDenied() {
         LookupManager manager = new LookupManager();
         manager.getPrivilegedLookup(Secret.class, FULL); // prime with an entitled caller
 
-        assertThrows(LoookupAcquisitionException.class,
-                () -> manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup()));
+        assertTrue(manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup()).isErr());
     }
 
     /**
      * Same cache gate, exercised with a lookup that holds higher modes than public but still lacks
      * {@code PRIVATE}. This kills mutations that only special-case the obviously-powerless public
      * lookup while still leaking the cache to partially-privileged callers.
-     *
-     * @throws LoookupAcquisitionException never while priming the cache.
      */
     @Test
-    void GivenPrimedCache_WhenPartiallyPrivilegedCallerRequests_ThenDenied() throws LoookupAcquisitionException {
+    void GivenPrimedCache_WhenPartiallyPrivilegedCallerRequests_ThenDenied() {
         LookupManager manager = new LookupManager();
         manager.getPrivilegedLookup(Secret.class, FULL); // prime with an entitled caller
 
         Lookup noPrivate = FULL.dropLookupMode(Lookup.PRIVATE);
-        assertThrows(LoookupAcquisitionException.class,
-                () -> manager.getPrivilegedLookup(Secret.class, noPrivate));
+        assertTrue(manager.getPrivilegedLookup(Secret.class, noPrivate).isErr());
     }
 
     /**
      * Verifies that the unentitled caller never receives the exact cached instance. Capturing the
      * cached lookup via an entitled call and proving the unentitled call cannot return it provides a
-     * direct, value-level no-leak assertion in addition to the throw-based ones above.
-     *
-     * @throws LoookupAcquisitionException never while priming the cache.
+     * direct, value-level no-leak assertion in addition to the error-based ones above.
      */
     @Test
-    void GivenPrimedCache_WhenUnentitledCallerRequests_ThenNeverReceivesCachedInstance()
-            throws LoookupAcquisitionException {
+    void GivenPrimedCache_WhenUnentitledCallerRequests_ThenNeverReceivesCachedInstance() {
         LookupManager manager = new LookupManager();
         manager.getPrivilegedLookup(Secret.class, FULL);
 
-        assertThrows(LoookupAcquisitionException.class, () -> {
-            manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup());
-        }, "an unentitled caller must be denied, not handed any lookup");
+        assertTrue(manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup()).isErr(),
+                "an unentitled caller must be denied, not handed any lookup");
     }
 
     /**
      * Regression lock for the caching optimization itself: a second entitled request returns the same
      * cached instance. This ensures the gate does not accidentally rebuild on every call (perf
      * regression) while still proving the gate runs for entitled callers.
-     *
-     * @throws LoookupAcquisitionException never in this scenario.
      */
     @Test
-    void GivenEntitledCaller_WhenRequestingTwice_ThenReturnsSameCachedInstance() throws LoookupAcquisitionException {
+    void GivenEntitledCaller_WhenRequestingTwice_ThenReturnsSameCachedInstance() {
         LookupManager manager = new LookupManager();
 
-        Lookup first = manager.getPrivilegedLookup(Secret.class, FULL);
-        Lookup second = manager.getPrivilegedLookup(Secret.class, FULL);
+        Lookup first = manager.getPrivilegedLookup(Secret.class, FULL).value().orElseThrow();
+        Lookup second = manager.getPrivilegedLookup(Secret.class, FULL).value().orElseThrow();
 
         assertSame(first, second);
     }

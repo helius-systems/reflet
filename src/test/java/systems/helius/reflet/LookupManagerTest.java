@@ -1,7 +1,6 @@
 package systems.helius.reflet;
 
 import org.junit.jupiter.api.Test;
-import systems.helius.reflet.exceptions.LoookupAcquisitionException;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -11,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -33,7 +31,7 @@ class LookupManagerTest {
     void GivenAccessibleClass_WhenGetPrivilegedLookup_ThenReturnsWorkingLookup() throws Throwable {
         LookupManager manager = new LookupManager();
 
-        Lookup lookup = manager.getPrivilegedLookup(Secret.class, LOCAL);
+        Lookup lookup = manager.getPrivilegedLookup(Secret.class, LOCAL).value().orElseThrow();
         VarHandle handle = lookup.findVarHandle(Secret.class, "value", String.class);
 
         assertEquals("hidden", handle.get(new Secret()));
@@ -41,15 +39,13 @@ class LookupManagerTest {
 
     /**
      * Verifies that repeated requests for the same target reuse the cached privileged lookup.
-     *
-     * @throws LoookupAcquisitionException never in this scenario.
      */
     @Test
-    void GivenRepeatedRequests_WhenGetPrivilegedLookup_ThenReusesCachedLookup() throws LoookupAcquisitionException {
+    void GivenRepeatedRequests_WhenGetPrivilegedLookup_ThenReusesCachedLookup() {
         LookupManager manager = new LookupManager();
 
-        Lookup first = manager.getPrivilegedLookup(Secret.class, LOCAL);
-        Lookup second = manager.getPrivilegedLookup(Secret.class, LOCAL);
+        Lookup first = manager.getPrivilegedLookup(Secret.class, LOCAL).value().orElseThrow();
+        Lookup second = manager.getPrivilegedLookup(Secret.class, LOCAL).value().orElseThrow();
 
         assertSame(first, second, "the second request should reuse the cached lookup");
     }
@@ -62,21 +58,17 @@ class LookupManagerTest {
     void GivenJdkClass_WhenGetPrivilegedLookup_ThenThrowsAcquisitionException() {
         LookupManager manager = new LookupManager();
 
-        assertThrows(LoookupAcquisitionException.class,
-                () -> manager.getPrivilegedLookup(Integer.class, LOCAL));
+        assertTrue(manager.getPrivilegedLookup(Integer.class, LOCAL).isErr());
     }
 
     /**
      * Verifies that an entitled fallback is used when the primary caller cannot grant access.
-     *
-     * @throws LoookupAcquisitionException never in this scenario.
      */
     @Test
-    void GivenDenyingCallerButEntitledFallback_WhenGetPrivilegedLookup_ThenUsesFallback()
-            throws LoookupAcquisitionException {
+    void GivenDenyingCallerButEntitledFallback_WhenGetPrivilegedLookup_ThenUsesFallback() {
         LookupManager manager = new LookupManager();
 
-        Lookup lookup = manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup(), LOCAL);
+        Lookup lookup = manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup(), LOCAL).value().orElseThrow();
 
         assertNotNull(lookup);
         assertEquals(Secret.class, lookup.lookupClass());
@@ -85,16 +77,13 @@ class LookupManagerTest {
     /**
      * Verifies the security gate: once a lookup is cached by an entitled caller, an unentitled caller
      * must still be denied rather than handed the cached privileged lookup.
-     *
-     * @throws LoookupAcquisitionException never while priming the cache.
      */
     @Test
-    void GivenCachedLookup_WhenUnentitledCallerRequests_ThenStillDenied() throws LoookupAcquisitionException {
+    void GivenCachedLookup_WhenUnentitledCallerRequests_ThenStillDenied() {
         LookupManager manager = new LookupManager();
         manager.getPrivilegedLookup(Secret.class, LOCAL); // prime the cache with an entitled caller
 
-        assertThrows(LoookupAcquisitionException.class,
-                () -> manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup()));
+        assertTrue(manager.getPrivilegedLookup(Secret.class, MethodHandles.publicLookup()).isErr());
     }
 
     /**
