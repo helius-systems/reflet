@@ -31,6 +31,7 @@ public interface ContentAccessor {
      * <p>
      * Static fields should be ignored, as they are not part of the instance's content.
      *
+     * @implSpec Implementations should not return null, but an empty collection if there are no values to extract.
      * @param current      the current value to access the innards of.
      * @param holdingField the field that contained the current value.
      *                     Null when current is the root of the search.

@@ -1,7 +1,6 @@
 package systems.helius.reflet;
 
 import jakarta.annotation.Nullable;
-import systems.helius.reflet.exceptions.LoookupAcquisitionException;
 import systems.helius.reflet.util.Result;
 
 import java.lang.invoke.MethodHandles;

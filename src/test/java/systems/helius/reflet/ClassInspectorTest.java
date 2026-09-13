@@ -41,4 +41,12 @@ class ClassInspectorTest {
         expectedFields.addAll(List.of(Superclass.class.getDeclaredFields()));
         assertEquals(expectedFields, fields);
     }
+
+    @Test
+    void GivenInaccessibleClass_WhenGetAllFieldsHandles_ThenThrowsIllegalAccessException() {
+        ClassInspector inspector = new ClassInspector();
+        assertThrows(IllegalAccessException.class, () -> {
+            inspector.getAllFieldsHandles(String.class, MethodHandles.lookup());
+        });
+    }
 }
