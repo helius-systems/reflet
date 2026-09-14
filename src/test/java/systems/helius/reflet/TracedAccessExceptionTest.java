@@ -51,6 +51,15 @@ class TracedAccessExceptionTest {
         assertSame(root, exception.getRoot());
     }
 
+    @Test
+    void GivenMessageAndCause_WhenConstructed_ThenStoresBoth() {
+        IllegalStateException cause = new IllegalStateException("broken");
+        TracedAccessException exception = new TracedAccessException("boom", cause);
+
+        assertEquals("boom", exception.getMessage());
+        assertSame(cause, exception.getCause());
+    }
+
     // NOSONAR needed for detection
     private static final class TestRoot {
         private String first;

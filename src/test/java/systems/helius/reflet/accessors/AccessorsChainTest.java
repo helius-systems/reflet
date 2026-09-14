@@ -3,11 +3,13 @@ package systems.helius.reflet.accessors;
 import org.junit.jupiter.api.Test;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
+import systems.helius.reflet.fixtures.Foo;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,6 +64,34 @@ class AccessorsChainTest {
                 .build();
 
         assertFalse(accessorTypes(chain).contains(FieldHandlesAccessor.class));
+    }
+
+    @Test
+    void GivenArrayAccessor_WhenAcceptsArrayType_ThenReturnsTrue() {
+        AccessorsChain chain = AccessorsChain.builder(false)
+                .addLast(new ArrayAccessor())
+                .build();
+
+        assertTrue(chain.accepts(Foo[].class, null));
+    }
+
+    @Test
+    void GivenMapAccessor_WhenAcceptsMapType_ThenReturnsTrue() {
+        AccessorsChain chain = AccessorsChain.builder(false)
+                .addLast(new IterativeMapAccessor())
+                .build();
+
+        assertTrue(chain.accepts(Map.class, null));
+    }
+
+    @Test
+    void GivenArrayAndMapAccessors_WhenAcceptsNonMatchingType_ThenReturnsFalse() {
+        AccessorsChain chain = AccessorsChain.builder(false)
+                .addLast(new ArrayAccessor())
+                .addLast(new IterativeMapAccessor())
+                .build();
+
+        assertFalse(chain.accepts(Foo.class, null));
     }
 
     /**
@@ -171,5 +201,24 @@ class AccessorsChainTest {
         );
         assertTrue(missingAfter.getMessage().contains(BetaAccessor.class.getSimpleName()));
     }
+
+    @Test
+    void GivenBuilderWithoutTarget_WhenReplace_ThenThrows() {
+        AccessorsChain.Builder builder = AccessorsChain.builder(false);
+
+        final var replacement = new BetaAccessor();
+        assertThrows(IllegalArgumentException.class, () -> builder.replace(AlphaAccessor.class, replacement));
+    }
+
+    @Test
+    void GivenDefaults_WhenUseDefaultConstructorOfBuilder_ThenChainHasDefaults() {
+        var builder = new AccessorsChain.Builder();
+
+        assertTrue(builder.lastResortEnabled);
+        assertTrue(builder.chain.stream().anyMatch(ArrayAccessor.class::isInstance));
+        assertTrue(builder.chain.stream().anyMatch(IterativeAccessor.class::isInstance));
+        assertTrue(builder.chain.stream().anyMatch(IterativeMapAccessor.class::isInstance));
+    }
+
 
 }
