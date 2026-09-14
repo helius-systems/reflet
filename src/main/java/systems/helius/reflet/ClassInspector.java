@@ -1,12 +1,13 @@
 package systems.helius.reflet;
 
-import jakarta.annotation.Nullable;
-import systems.helius.reflet.exceptions.LoookupAcquisitionException;
+import org.jspecify.annotations.Nullable;
+import systems.helius.reflet.internal.Result;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Supplier;
 
 public sealed class ClassInspector permits CachingClassInspector {
     protected final LookupManager lookupManager;
@@ -28,7 +29,7 @@ public sealed class ClassInspector permits CachingClassInspector {
      *
      * @param clazz to analyze
      * @return all the fields that members of clazz have. This is in the form of a map where the key
-     * the class of each superclass of the target class.
+     * is the class of each superclass of the target class. The map itself and its lists are unmodifiable.
      */
     public Map<Class<?>, List<Field>> getAllFieldsHierarchical(Class<?> clazz) {
         var fields = new LinkedHashMap<Class<?>, List<Field>>();
@@ -39,7 +40,7 @@ public sealed class ClassInspector permits CachingClassInspector {
                 && !superClass.equals(Enum.class)) {
             fields.putAll(getAllFieldsHierarchical(superClass));
         }
-        return fields;
+        return Collections.unmodifiableMap(fields);
     }
 
     /**
@@ -47,7 +48,7 @@ public sealed class ClassInspector permits CachingClassInspector {
      * Recursively checks up into the class tree of clazz to accumulate members.
      *
      * @param clazz to analyze
-     * @return all the fields that members of clazz have.
+     * @return all the fields that members of clazz have. The returned list is unmodifiable.
      */
     public List<Field> getAllFieldsFlat(Class<?> clazz) {
         Map<Class<?>, List<Field>> hierarchical = getAllFieldsHierarchical(clazz);
@@ -56,12 +57,13 @@ public sealed class ClassInspector permits CachingClassInspector {
         for (List<Field> fields : hierarchical.values()) {
             buffer.addAll(fields);
         }
-        return buffer;
+        return Collections.unmodifiableList(buffer);
     }
 
     /**
      * Get all the fields and their private handle that are present in members of a given class.
-     * @param clazz to analyze
+     *
+     * @param clazz   to analyze
      * @param context the context of the lookup
      * @return a map where the key is the field and the value its access handle.
      * @throws IllegalAccessException if the context is not allowed to access the field
@@ -69,13 +71,15 @@ public sealed class ClassInspector permits CachingClassInspector {
     public Map<Field, VarHandle> getAllFieldsHandles(Class<?> clazz, MethodHandles.Lookup context) throws IllegalAccessException {
         Map<Field, VarHandle> handles = new LinkedHashMap<>();
         MethodHandles.Lookup privilegedLookup = context;
-        for (Map.Entry<Class<?>, List<Field>> fieldsByClass :  getAllFieldsHierarchical(clazz).entrySet()) {
+        for (Map.Entry<Class<?>, List<Field>> fieldsByClass : getAllFieldsHierarchical(clazz).entrySet()) {
             if (context.lookupClass() != fieldsByClass.getKey()) {
                 // This grants access to the private fields within superclasses
-                try {
-                    privilegedLookup = lookupManager.getPrivilegedLookup(fieldsByClass.getKey(), context, privilegedLookup);
-                } catch (LoookupAcquisitionException e) {
-                    throw new IllegalAccessException("Couldn't get private access to the class: " + fieldsByClass.getKey().getCanonicalName() + ". " + e.getMessage());
+                Result<MethodHandles.Lookup, Supplier<String>> result = lookupManager.getPrivilegedLookup(fieldsByClass.getKey(), context, privilegedLookup);
+                if (result.isOk()) {
+                    privilegedLookup = result.value().orElseThrow();
+                } else {
+                    throw new IllegalAccessException("Couldn't get private access to the class: "
+                            + fieldsByClass.getKey().getCanonicalName() + ". " + result.error().orElseThrow().get());
                 }
             }
             for (Field field : fieldsByClass.getValue()) {
@@ -87,8 +91,8 @@ public sealed class ClassInspector permits CachingClassInspector {
 
     /**
      *
-     * @param targetType the sought type
-     * @param value the object being checked
+     * @param targetType   the sought type
+     * @param value        the object being checked
      * @param originalType Because of implicit casting rules in the Java Language, primitives are implicitly converted
      *                     to their wrapper type when passed to a method that takes an Object. Passing the original
      *                     type of the field that held the value allows us to deduce the correct true type of the value.

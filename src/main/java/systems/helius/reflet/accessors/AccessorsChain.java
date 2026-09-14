@@ -1,7 +1,10 @@
 package systems.helius.reflet.accessors;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import systems.helius.reflet.*;
+import systems.helius.reflet.exceptions.AccessorException;
+import systems.helius.reflet.exceptions.ExceptionContext;
+import systems.helius.reflet.exceptions.ExceptionResolution;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -57,50 +60,48 @@ public class AccessorsChain implements ContentAccessor {
      * @param context      the current introspection context
      * @param settings     settings of the current search
      * @return the content of the object
-     * @throws ChainComponentException if a component of the chain throws an exception, it is thrown immediately if the exception does not allow for fallbacks.
-     *                                 Otherwise, it is thrown only if none of the components managed to extract content and at least one threw an exception.
+     * @throws AccessorException if the selected accessor fails and either it is marked fatal or the handler resolves to propagate the exception.
      */
     @Override
-    public Collection<Content> extract(Object current, @Nullable Field holdingField, IntrospectionContext<?> context, IntrospectionSettings settings) throws ChainComponentException {
-        ChainComponentException delayedException = null;
+    public Collection<Content> extract(Object current, @Nullable Field holdingField, IntrospectionContext<?> context, IntrospectionSettings settings) throws AccessorException {
         Collection<Content> extracted = null;
 
         Class<?> targetClass = current.getClass();
         ContentAccessor accessor = this.appropriate.get(targetClass);
         if (accessor != null) {
-            try {
-                extracted = accessor.extract(current, holdingField, context, settings);
-            } catch (ChainComponentException e) {
-                if (!e.isAllowFallback()) {
-                    throw e;
-                }
-                delayedException = e;
-            }
-        }
-        if (extracted == null) {
+            extracted = extractWith(current, holdingField, context, settings, accessor);
+        } else {
+            // Learning mode
             for (ContentAccessor chainElement : chain) {
                 if (chainElement.accepts(targetClass, holdingField)) {
-                    try {
-                        extracted = chainElement.extract(current, holdingField, context, settings);
-                        this.appropriate.put(targetClass, chainElement);
-                        break;
-                    } catch (ChainComponentException e) {
-                        if (!e.isAllowFallback()) {
-                            throw e;
-                        }
-                        delayedException = e;
-                    }
+                    extracted = extractWith(current, holdingField, context, settings, chainElement);
+                    this.appropriate.put(targetClass, chainElement);
+                    break;
                 }
             }
         }
-        if (extracted == null) { // If nothing is found
-            if (delayedException != null) {
-                // If we had a delayed exception, rethrow it
-                throw delayedException;
+        return Objects.requireNonNullElse(extracted, Collections.emptyList());
+    }
+
+    private Collection<Content> extractWith(Object current, Field holdingField, IntrospectionContext<?> context, IntrospectionSettings settings, ContentAccessor accessor) throws AccessorException {
+        try {
+            return accessor.extract(current, holdingField, context, settings);
+        } catch (AccessorException | RuntimeException e) {
+            if (e instanceof AccessorException ae && ae.isFatal()) {
+                throw ae;
             }
-            return Collections.emptyList();
+            var exceptionContext = new ExceptionContext(e, current, holdingField, context.targetType(), ExceptionContext.Origin.ACCESSOR);
+            ExceptionResolution resolution = settings.getExceptionHandler().handle(exceptionContext);
+            if (resolution instanceof ExceptionResolution.Skip) {
+                return Collections.emptyList();
+            }
+            if (resolution instanceof ExceptionResolution.Substitute substitute) {
+                return substitute.value();
+            }
+            // Propagate
+            throw AccessorException.fatal("Accessor " + accessor.getClass().getSimpleName()
+                    + " failed to extract content from " + current.getClass().getSimpleName(), e);
         }
-        return extracted;
     }
 
     public static class Builder {

@@ -1,6 +1,6 @@
 package systems.helius.reflet.accessors;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
 
@@ -9,6 +9,9 @@ import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * Accessor specialized for {@link Iterable} values.
+ */
 public class IterativeAccessor implements ContentAccessor {
     @Override
     public boolean accepts(Class<?> current, @Nullable Field holdingField) {

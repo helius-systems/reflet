@@ -1,25 +1,25 @@
 package systems.helius.reflet.fixtures;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import lombok.Data;
 import lombok.Getter;
 
 @Data
 public class StudentProfile {
     @Getter(lombok.AccessLevel.NONE)
-    protected final int STUDENT_ID;
+    protected final int studentId;
     protected ComplexHuman student;
     protected School school;
     @Nullable
     private Float average;
 
     protected StudentProfile(int studentId, ComplexHuman student, School school) {
-        this.STUDENT_ID = studentId;
+        this.studentId = studentId;
         this.student = student;
         this.school = school;
     }
 
     public int getStudentId() {
-        return STUDENT_ID;
+        return studentId;
     }
 }

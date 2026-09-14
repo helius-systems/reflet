@@ -5,12 +5,17 @@ import com.sb.factorium.FactoryProvider;
 import com.sb.factorium.RandomUtil;
 import com.sb.factorium.RecordingFactory;
 import com.sb.factorium.RecordingFactoryMaker;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import systems.helius.reflet.accessors.Content;
+import systems.helius.reflet.accessors.ContentAccessor;
+import systems.helius.reflet.exceptions.ExceptionResolution;
 import systems.helius.reflet.exceptions.IntrospectionException;
 import systems.helius.reflet.fixtures.*;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +30,7 @@ class BeanIntrospectorTest {
     private static FooCollectionGenerator fooCollectionGenerator = new FooCollectionGenerator(fooGenerator);
 
     @Test
-    void WhenSeekInt_GivenObjectWithInheritance_ThenAlsoFindInSuperclass() throws IntrospectionException {
+    void GivenObjectWithInheritance_WhenSeekInt_ThenAlsoFindInSuperclass() throws IntrospectionException {
         int first = 1;
         int second = 6;
         DataClassWithoutGetters simple = new DataClassWithoutGetters(
@@ -44,7 +49,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekInt_GivenSimpleClass_ThenFindAll() throws IntrospectionException {
+    void GivenSimpleClass_WhenSeekInt_ThenFindAll() throws IntrospectionException {
         var foo = fooGenerator.generate();
         Set<Integer> found = new BeanIntrospector().seek(int.class, foo, MethodHandles.lookup());
         assertEquals(1, found.size());
@@ -52,14 +57,14 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekInt_GivenCollectionsWrapper_ThenFindAll() throws IntrospectionException {
+    void GivenCollectionsWrapper_WhenSeekInt_ThenFindAll() throws IntrospectionException {
         FooCollection fooCollection = fooCollectionGenerator.generate();
         Set<Foo> found = new BeanIntrospector().seek(Foo.class, fooCollection, MethodHandles.lookup());
         assertEquals(fooCollection.totalElements(), found.size());
     }
 
     @Test
-    void WhenSeekIterable_GivenClassWithIterables_ThenFindIterables() throws IntrospectionException {
+    void GivenClassWithIterables_WhenSeekIterable_ThenFindIterables() throws IntrospectionException {
         FooCollection fooCollection = fooCollectionGenerator.generate();
         //noinspection rawtypes impossible to cast the generic of Iterable
         Set<Iterable> found = new BeanIntrospector().seek(Iterable.class, fooCollection, MethodHandles.lookup());
@@ -67,21 +72,21 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekObjectArrayContent_GivenObjectArray_ThenFindAll() throws IntrospectionException {
+    void GivenObjectArray_WhenSeekObjectArrayContent_ThenFindAll() throws IntrospectionException {
         Foo[] arr = fooGenerator.generate(5).toArray(new Foo[0]);
         Set<Foo> found = new BeanIntrospector().seek(Foo.class, arr, MethodHandles.lookup());
         assertEquals(arr.length, found.size());
     }
 
     @Test
-    void WhenSeekPrimitiveArrayContent_GivenPrimitiveArray_ThenFindAll() throws IntrospectionException {
+    void GivenPrimitiveArray_WhenSeekPrimitiveArrayContent_ThenFindAll() throws IntrospectionException {
         int[] arr = ThreadLocalRandom.current().ints(5).toArray();
         Set<Integer> found = new BeanIntrospector().seek(int.class, arr, MethodHandles.lookup());
         assertEquals(arr.length, found.size());
     }
 
     @Test
-    void WhenSeekObjectArrayContent_GivenNestedObjectArray_ThenFindAll() throws IllegalAccessException, IntrospectionException {
+    void GivenNestedObjectArray_WhenSeekObjectArrayContent_ThenFindAll() throws IllegalAccessException, IntrospectionException {
         RecordingFactory<String, Foo> recordingFactory = (RecordingFactory<String, Foo>) FactoryProvider.make(
                 List.of(fooGenerator), FactoryProvider.DefaultKey.DEFAULT_KEY, new RecordingFactoryMaker(), false)
                 .factory(Foo.class);
@@ -98,7 +103,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekPrimitiveArrayContent_GivenNestedPrimitiveArray_ThenFindAll() throws IntrospectionException {
+    void GivenNestedPrimitiveArray_WhenSeekPrimitiveArrayContent_ThenFindAll() throws IntrospectionException {
         final int LOWEST_LEVEL_SIZE = 3;
         int nGenerated = 0;
         long[][][][] multiDimensionalArray = new long[3][3][3][];
@@ -115,7 +120,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekPrimitiveArray_GivenNestedPrimitiveArray_ThenFindAll() throws IntrospectionException {
+    void GivenNestedPrimitiveArray_WhenSeekPrimitiveArray_ThenFindAll() throws IntrospectionException {
         long[][][][] multiDimensionalArray = new long[3][3][3][];
         final int N_GENERATED = multiDimensionalArray.length * multiDimensionalArray[0].length * multiDimensionalArray[0][0].length;
         for (int i = 0; i < multiDimensionalArray.length; i++) {
@@ -130,7 +135,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekPrimitiveWrapper_GivenClassWithMixedPrimitivesAndWrappers_ThenOnlyFindWrappers() throws IntrospectionException {
+    void GivenClassWithMixedPrimitivesAndWrappers_WhenSeekPrimitiveWrapper_ThenOnlyFindWrappers() throws IntrospectionException {
         int first = -15;
         int second = 16;
         DataClassWithoutGetters simple = new DataClassWithoutGetters(
@@ -149,7 +154,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekObject_GivenReferenceLoop_ThenFindAll() throws IntrospectionException {
+    void GivenReferenceLoop_WhenSeekObject_ThenFindAll() throws IntrospectionException {
         var first = new ChainLink(null);
         var second = new ChainLink(first);
         var third = new ChainLink(second);
@@ -161,7 +166,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeek_GivenComplexStructureWithHiddenStrata_ThenFindEvenWithinHiddenStrata() throws IntrospectionException {
+    void GivenComplexStructureWithHiddenStrata_WhenSeek_ThenFindEvenWithinHiddenStrata() throws IntrospectionException {
         var firstId = new ComplexStructure.MiddleStrata.IntHolder(1);
         var secondId = new ComplexStructure.MiddleStrata.IntHolder(2);
         var structure = new ComplexStructure(firstId, secondId);
@@ -174,7 +179,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeek_GivenEqualButDifferentInstances_ThenFindAll() throws IntrospectionException {
+    void GivenEqualButDifferentInstances_WhenSeek_ThenFindAll() throws IntrospectionException {
         var firstId = new ComplexStructure.MiddleStrata.IntHolder(1);
         var secondId = new ComplexStructure.MiddleStrata.IntHolder(1);
         var structure = new ComplexStructure(firstId, secondId);
@@ -187,7 +192,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeek_GivenSharedInstances_ThenFindOnlyDifferentInstances() throws IntrospectionException {
+    void GivenSharedInstances_WhenSeek_ThenFindOnlyDifferentInstances() throws IntrospectionException {
         var firstId = new ComplexStructure.MiddleStrata.IntHolder(1);
         var structure = new ComplexStructure(firstId, firstId);
 
@@ -198,7 +203,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekInt_GivenEnum_ThenFindIdField() throws IntrospectionException {
+    void GivenEnum_WhenSeekInt_ThenFindIdField() throws IntrospectionException {
         BarEnum bar = RandomUtil.randomEnum(BarEnum.class);
         Set<Integer> found = new BeanIntrospector().seek(int.class, bar, MethodHandles.lookup());
         assertEquals(1, found.size());
@@ -206,7 +211,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekMapContent_GivenMap_ThenCanReadKey() throws IntrospectionException {
+    void GivenMap_WhenSeekMapContent_ThenCanReadKey() throws IntrospectionException {
         List<String> toFind = faker.lorem().words(2);
         var map = new HashMap<>();
         // Put noise in the map
@@ -221,7 +226,7 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekMapContent_GivenMap_ThenCanReadValues() throws IntrospectionException {
+    void GivenMap_WhenSeekMapContent_ThenCanReadValues() throws IntrospectionException {
         List<String> toFind = List.of("Hello", "World", "Foo");
         var map = new HashMap<>();
         // Put noise in the map
@@ -236,14 +241,79 @@ class BeanIntrospectorTest {
     }
 
     @Test
-    void WhenSeekMapContent_GivenUseUnsafeAccessAndOutOfModuleCode_ThenFail() {
+    void GivenUseUnsafeAccessAndOutOfModuleCode_WhenSeekMapContent_ThenFail() {
         var settings = IntrospectionSettings.builder()
-                .withSafeAccessCheck(false)
+                .withAccessDenialPolicy(AccessDenialPolicy.FAIL)
                 .build();
         var introspector = new BeanIntrospector(settings);
         var map = new HashMap<String, Boolean>();
         map.put("hello", true);
         map.put("world", false);
         assertThrows(IntrospectionException.class, () -> introspector.seek(String.class, map, MethodHandles.lookup()));
+    }
+
+    @Test
+    void GivenAccessorFailureAndSkipResolution_WhenSeek_ThenIgnoreFailure() throws IntrospectionException {
+        var settings = IntrospectionSettings.builder()
+                .withExceptionHandler(context -> ExceptionResolution.skip())
+                .withContentAccessor(new ThrowingAccessor(Object.class, new IllegalStateException("boom")))
+                .build();
+
+        var found = new BeanIntrospector(settings).seek(String.class, new Object(), MethodHandles.lookup());
+
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void GivenAccessorFailureAndSubstituteResolution_WhenSeek_ThenUseSubstitute() throws IntrospectionException {
+        var replacement = "recovered";
+        var settings = IntrospectionSettings.builder()
+                .withExceptionHandler(context -> ExceptionResolution.substitute(List.of(new Content(replacement, null))))
+                .withContentAccessor(new ThrowingAccessor(Object.class, new IllegalStateException("boom")))
+                .build();
+
+        var found = new BeanIntrospector(settings).seek(String.class, new Object(), MethodHandles.lookup());
+
+        assertEquals(Set.of(replacement), found);
+    }
+
+    @Test
+    void GivenAccessorFailureAndPropagateResolution_WhenSeek_ThenThrowIntrospectionException() {
+        var settings = IntrospectionSettings.builder()
+                .withExceptionHandler(context -> ExceptionResolution.propagate())
+                .withContentAccessor(new ThrowingAccessor(Object.class, new IllegalStateException("boom")))
+                .build();
+
+        assertThrows(IntrospectionException.class,
+                () -> new BeanIntrospector(settings).seek(String.class, new Object(), MethodHandles.lookup()));
+    }
+
+    @Test
+    void GivenEnterTargetTypeFalse_WhenReachingTargetType_ThenDoNotEnter() throws IntrospectionException {
+        var settings = IntrospectionSettings.builder()
+                .withEnterTargetType(false)
+                .build();
+        var introspector = new BeanIntrospector(settings);
+        var selfReferencingObject = new SelfReferencing(new SelfReferencing(null));
+
+        Set<SelfReferencing> found = introspector.seek(SelfReferencing.class, selfReferencingObject, MethodHandles.lookup());
+
+        assertEquals(1, found.size());
+    }
+
+    private record ThrowingAccessor(Class<?> failingType, RuntimeException exception) implements ContentAccessor {
+        @Override
+        public boolean accepts(Class<?> current, Field holdingField) {
+            return current == failingType;
+        }
+
+        @Override
+        public Collection<Content> extract(Object current, Field holdingField, IntrospectionContext<?> context,
+                                          IntrospectionSettings settings) {
+            if (current.getClass() == failingType) {
+                throw exception;
+            }
+            return Collections.emptyList();
+        }
     }
 }

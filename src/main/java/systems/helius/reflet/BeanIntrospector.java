@@ -1,7 +1,7 @@
 package systems.helius.reflet;
 
-import jakarta.annotation.Nullable;
-import systems.helius.reflet.exceptions.IntrospectionException;
+import org.jspecify.annotations.Nullable;
+import systems.helius.reflet.exceptions.*;
 
 import systems.helius.reflet.accessors.Content;
 
@@ -14,16 +14,13 @@ public class BeanIntrospector {
     protected final IntrospectionSettings settings;
 
     public BeanIntrospector() {
-        this(null, null);
+        this(null);
     }
 
     public BeanIntrospector(IntrospectionSettings settings) {
-        this(settings, null);
+        this.settings = settings != null ? settings : new IntrospectionSettings();
     }
 
-    public BeanIntrospector(@Nullable IntrospectionSettings settings, @Nullable ClassInspector classInspector) {
-        this.settings = Objects.requireNonNullElseGet(settings, IntrospectionSettings::new);
-    }
 
     /**
      * Seek within the root and all children for instances of a given type.
@@ -51,6 +48,7 @@ public class BeanIntrospector {
         return found;
     }
 
+    @SuppressWarnings("unchecked") // unchecked cast to T covered by the static isAssignableFrom check
     protected <T> void depthFirstSearch(Object current,
                                         @Nullable Field holdingField,
                                         int depth,
@@ -63,7 +61,6 @@ public class BeanIntrospector {
 
         // Check if the current object is what we are looking for
         if (ClassInspector.evaluateTypingMatch(context.targetType(), current, (holdingField != null ? holdingField.getType() : null))) {
-            //noinspection unchecked covered by the static isAssignableFrom
             context.found().add((T) current);
             if (!settings.isEnterTargetType())
                 return;
@@ -77,11 +74,22 @@ public class BeanIntrospector {
     }
 
     protected <T> void descendInto(Object current, Field holdingField, int depth, IntrospectionContext<T> context, IntrospectionSettings settings) throws TracedAccessException {
-        Collection<Content> content = null;
+        Collection<Content> content;
         try {
             content = context.contentAccessor().extract(current, holdingField, context, settings);
-        } catch (Exception e) {
-            if (!settings.useSafeAccessCheck()) {
+        } catch (AccessorException | RuntimeException e) {
+            if (e instanceof AccessorException ae && ae.isFatal()) {
+                var traced = new TracedAccessException(e);
+                traced.addStep(holdingField);
+                throw traced;
+            }
+            var exceptionContext = new ExceptionContext(e, current, holdingField, context.targetType(), ExceptionContext.Origin.DESCENT);
+            ExceptionResolution resolution = settings.getExceptionHandler().handle(exceptionContext);
+            if (resolution instanceof ExceptionResolution.Skip) {
+                content = Collections.emptyList();
+            } else if (resolution instanceof ExceptionResolution.Substitute substitute) {
+                content = substitute.value();
+            } else { // Propagate
                 var traced = new TracedAccessException(e);
                 traced.addStep(holdingField);
                 throw traced;
@@ -94,7 +102,12 @@ public class BeanIntrospector {
         final int currentDepth = depth + 1;
         for (Content c : content) {
             if (c == null) continue;
-            depthFirstSearch(c.value(), c.holdingField(), currentDepth, context, settings);
+            try {
+                depthFirstSearch(c.value(), c.holdingField(), currentDepth, context, settings);
+            } catch (TracedAccessException e) {
+                e.addStep(holdingField);
+                throw e;
+            }
         }
     }
 }

@@ -2,11 +2,11 @@ package systems.helius.reflet.fixtures;
 
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
-import systems.helius.reflet.accessors.ChainComponentException;
+import systems.helius.reflet.exceptions.AccessorException;
 import systems.helius.reflet.accessors.Content;
 import systems.helius.reflet.accessors.ContentAccessor;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +47,7 @@ public class DepartmentGetterAccessor implements ContentAccessor {
     public Collection<Content> extract(Object current,
                                        @Nullable Field holdingField,
                                        IntrospectionContext<?> context,
-                                       IntrospectionSettings settings) throws ChainComponentException {
+                                       IntrospectionSettings settings) throws AccessorException {
         Department dept = (Department) current;
         List<Content> contents = new ArrayList<>(4);
         contents.add(new Content(dept.getName(), NAME_FIELD));

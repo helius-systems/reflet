@@ -36,7 +36,8 @@ public final class CachingClassInspector extends ClassInspector {
             for (Map.Entry<Class<?>, List<Field>> entry : raw.entrySet()) {
                 result.put(entry.getKey(), List.copyOf(entry.getValue()));
             }
-            hierarchyCache.put(clazz, Collections.unmodifiableMap(result));
+            result = Collections.unmodifiableMap(result);
+            hierarchyCache.put(clazz, result);
         }
         return result;
     }
@@ -46,10 +47,13 @@ public final class CachingClassInspector extends ClassInspector {
      * Recursively checks up into the class tree of clazz to accumulate members.
      *
      * @param clazz to analyze
-     * @return all the fields that members of clazz have.
+     * @return all the fields that members of clazz have. The returned list is unmodifiable.
      */
     @Override
     public List<Field> getAllFieldsFlat(Class<?> clazz) {
-        return flatCache.computeIfAbsent(clazz, super::getAllFieldsFlat);
+        return flatCache.computeIfAbsent(clazz, c -> {
+            List<Field> raw = super.getAllFieldsFlat(c);
+            return Collections.unmodifiableList(raw);
+        });
     }
 }

@@ -1,6 +1,6 @@
 package systems.helius.reflet.fixtures;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ChainLink {
     private ChainLink next;

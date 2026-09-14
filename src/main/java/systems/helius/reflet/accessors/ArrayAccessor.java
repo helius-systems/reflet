@@ -1,6 +1,6 @@
 package systems.helius.reflet.accessors;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
 
@@ -21,7 +21,7 @@ public class ArrayAccessor implements ContentAccessor {
     }
 
     @Override
-    public Collection<Content> extract(Object current, @Nullable Field holdingField, IntrospectionContext<?> context, IntrospectionSettings settings) throws ChainComponentException {
+    public Collection<Content> extract(Object current, @Nullable Field holdingField, IntrospectionContext<?> context, IntrospectionSettings settings) {
         Stream<?> source;
         if (current.getClass().getComponentType().isPrimitive()) {
             final int LENGTH = Array.getLength(current);

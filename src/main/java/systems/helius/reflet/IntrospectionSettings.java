@@ -1,28 +1,24 @@
 package systems.helius.reflet;
 
-import jakarta.annotation.Nullable;
 import systems.helius.reflet.accessors.AccessorsChain;
 import systems.helius.reflet.accessors.ContentAccessor;
+import systems.helius.reflet.exceptions.IntrospectionFailureHandler;
 
-import java.util.function.Predicate;
+import java.util.Objects;
 
+/**
+ * Configuration applied to a {@link BeanIntrospector} search.
+ */
 public class IntrospectionSettings {
     /**
-     * If true (default), only fields and methods that may be accessed according to the rules will be made accessible.
-     * If false, introspectors will throw an IllegalAccessException if faced with something it is not allowed to access.
-     *
-     * @see <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/IllegalAccessException.html">Java 17 API: IllegalAccessException</a>
+     * Policy used only when a class or member cannot be made accessible.
      */
-    protected final boolean safeAccessCheck;
+    protected final AccessDenialPolicy accessDenialPolicy;
 
     /**
-     * If set, fields that cause any exception matched by the predicate when accessed will be skipped.
-     * If null or the exception is not matched, introspectors will throw an {@link systems.helius.reflet.exceptions.IntrospectionException}
-     * if faced with an exception when accessing a field.
-     *
-     * @see <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/IllegalAccessException.html">Java 17 API: IllegalAccessException</a>
+     * Policy used for thrown exceptions during content extraction and descent.
      */
-    protected final Predicate<Exception> skipOnException;
+    protected final IntrospectionFailureHandler exceptionHandler;
 
     /**
      * If true (default), instances of the target type will also be introspected for more instances.
@@ -34,6 +30,9 @@ public class IntrospectionSettings {
      */
     protected final int maxDepth;
 
+    /**
+     * Accessor used to extract child content from each visited object.
+     */
     protected final ContentAccessor contentAccessor;
 
     /**
@@ -43,80 +42,133 @@ public class IntrospectionSettings {
         this(new Builder());
     }
 
+    /**
+     * Creates settings from a builder.
+     *
+     * @param b the builder containing the desired settings.
+     */
     protected IntrospectionSettings(Builder b) {
-        this.safeAccessCheck = b.safeAccessCheck;
-        this.skipOnException = b.skipOnException != null ? b.skipOnException : e -> false;
+        this.accessDenialPolicy = b.accessDenialPolicy;
+        this.exceptionHandler = b.exceptionHandler;
         this.enterTargetType = b.enterTargetType;
         this.maxDepth = b.maxDepth;
         this.contentAccessor = b.contentAccessor;
     }
 
+    /**
+     * Creates a new settings builder.
+     *
+     * @return a builder initialized with default settings.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Copies these settings into a mutable builder.
+     *
+     * @return a builder initialized from this instance.
+     */
     public Builder toBuilder() {
         return new Builder()
-                .withSafeAccessCheck(safeAccessCheck)
-                .withSkipOnException(skipOnException)
+                .withAccessDenialPolicy(accessDenialPolicy)
+                .withExceptionHandler(exceptionHandler)
                 .withEnterTargetType(enterTargetType)
                 .withMaxDepth(maxDepth)
                 .withContentAccessor(contentAccessor);
     }
 
-    public boolean useSafeAccessCheck() {
-        return safeAccessCheck;
+    /**
+     * Returns the policy used for inaccessible classes and members.
+     *
+     * @return the configured access-denial policy.
+     */
+    public AccessDenialPolicy getAccessDenialPolicy() {
+        return accessDenialPolicy;
     }
 
+    /**
+     * Returns the policy used for thrown extraction and descent exceptions.
+     *
+     * @return the configured exception handler.
+     */
+    public IntrospectionFailureHandler getExceptionHandler() {
+        return exceptionHandler;
+    }
+
+    /**
+     * Returns whether matching target values should also be recursively searched.
+     *
+     * @return {@code true} when matching values are entered.
+     */
     public boolean isEnterTargetType() {
         return enterTargetType;
     }
 
+    /**
+     * Returns the maximum search depth.
+     *
+     * @return the maximum depth.
+     */
     public int getMaxDepth() {
         return maxDepth;
     }
 
+    /**
+     * Returns the content accessor used by searches.
+     *
+     * @return the configured content accessor.
+     */
     public ContentAccessor getContentAccessor() {
         return contentAccessor;
     }
 
+    /**
+     * Builder for {@link IntrospectionSettings}.
+     */
     public static class Builder {
-        private boolean safeAccessCheck = true;
-        @Nullable
-        private Predicate<Exception> skipOnException = null;
+        private AccessDenialPolicy accessDenialPolicy = AccessDenialPolicy.SKIP;
+        private IntrospectionFailureHandler exceptionHandler = IntrospectionFailureHandler.propagateAll();
         private boolean enterTargetType = true;
         private int maxDepth = Integer.MAX_VALUE;
         private ContentAccessor contentAccessor;
 
+        /**
+         * Creates a builder initialized with the default accessor chain.
+         */
         public Builder() {
             this.contentAccessor = AccessorsChain.builder(true).build();
         }
 
         /**
-         * If true (default), only fields and methods that may be accessed according to the rules will be made accessible.
-         * If false, introspectors will throw an IllegalAccessException if faced with something it is not allowed to access.
+         * Sets the policy used only when a class or member cannot be made accessible.
          *
-         * @see <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/IllegalAccessException.html">Java 17 API: IllegalAccessException</a>
+         * @param accessDenialPolicy the access-denial policy.
+         * @return this builder.
+         * @throws NullPointerException if {@code accessDenialPolicy} is {@code null}.
          */
-        public Builder withSafeAccessCheck(boolean v) {
-            this.safeAccessCheck = v;
+        public Builder withAccessDenialPolicy(AccessDenialPolicy accessDenialPolicy) {
+            this.accessDenialPolicy = Objects.requireNonNull(accessDenialPolicy, "accessDenialPolicy cannot be null");
             return this;
         }
 
         /**
-         * If true (default), fields that cause any exception when accessed will be skipped.
-         * If false, introspectors will throw an {@link systems.helius.reflet.exceptions.IntrospectionException}
-         * if faced with an exception when accessing a field.
+         * Sets the policy used for thrown extraction and descent exceptions.
          *
-         * @see <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/IllegalAccessException.html">Java 17 API: IllegalAccessException</a>
+         * @param exceptionHandler the exception handler.
+         * @return this builder.
+         * @throws NullPointerException if {@code exceptionHandler} is {@code null}.
          */
-        public Builder withSkipOnException(Predicate<Exception> skipOnException) {
-            this.skipOnException = skipOnException;
+        public Builder withExceptionHandler(IntrospectionFailureHandler exceptionHandler) {
+            this.exceptionHandler = Objects.requireNonNull(exceptionHandler, "exceptionHandler cannot be null");
             return this;
         }
 
         /**
          * If true (default), instances of the target type will also be introspected for more instances.
+         *
+         * @param enterTargetType whether target-type matches should also be entered.
+         * @return this builder.
          */
         public Builder withEnterTargetType(boolean enterTargetType) {
             this.enterTargetType = enterTargetType;
@@ -125,17 +177,33 @@ public class IntrospectionSettings {
 
         /**
          * How deep in the root object to search for matches.
+         *
+         * @param maxDepth the maximum search depth.
+         * @return this builder.
          */
         public Builder withMaxDepth(int maxDepth) {
             this.maxDepth = maxDepth;
             return this;
         }
 
+        /**
+         * Sets the content accessor used by introspection.
+         *
+         * @param contentAccessor the content accessor.
+         * @return this builder.
+         * @throws NullPointerException if {@code contentAccessor} is {@code null}.
+         */
         public Builder withContentAccessor(ContentAccessor contentAccessor) {
-            this.contentAccessor = contentAccessor;
+            this.contentAccessor = Objects.requireNonNull(contentAccessor, "contentAccessor cannot be null");
             return this;
         }
 
+        /**
+         * Builds the settings.
+         *
+         * @return a new settings instance.
+         * @throws IllegalArgumentException if {@code maxDepth} is negative.
+         */
         public IntrospectionSettings build() {
             if (maxDepth < 0) throw new IllegalArgumentException("maxDepth must be >= 0");
             return new IntrospectionSettings(this);
