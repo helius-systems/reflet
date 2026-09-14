@@ -44,7 +44,8 @@ A shared Lookup object delegates the capability to create method handles on priv
 Even if privileged code uses the Lookup object, the access checking is confined to the privileges of the original lookup class.
 
 ### Accessing base Java classes
-Add the following JVM options to your launch configuration:
+The default content accessors of the `BeanIntrospector` know how to handle collections (Iterables really), maps, and arrays out of the box.
+Still, if you really want the introspector to penetrate into the `java.lang` classes, add the following JVM options to your launch configuration:
 ```
 --add-opens java.base/java.lang=ALL-UNNAMED
 --add-opens java.base/java.nio=ALL-UNNAMED
