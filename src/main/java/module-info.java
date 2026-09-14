@@ -2,8 +2,8 @@
  * Reflet provides tools for reflection and metaprogramming.
  */
 module systems.helius.reflet {
-    requires org.jspecify;
-    requires org.jetbrains.annotations;
+    requires static transitive org.jspecify;
+    requires static org.jetbrains.annotations;
 
     exports systems.helius.reflet;
     exports systems.helius.reflet.exceptions;

@@ -60,8 +60,7 @@ public class AccessorsChain implements ContentAccessor {
      * @param context      the current introspection context
      * @param settings     settings of the current search
      * @return the content of the object
-     * @throws AccessorException if a component of the chain throws an exception, it is thrown immediately if the exception does not allow for fallbacks.
-     *                                 Otherwise, it is thrown only if none of the components managed to extract content and at least one threw an exception.
+     * @throws AccessorException if the selected accessor fails and either it is marked fatal or the handler resolves to propagate the exception.
      */
     @Override
     public Collection<Content> extract(Object current, @Nullable Field holdingField, IntrospectionContext<?> context, IntrospectionSettings settings) throws AccessorException {

@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * A Result type that encapsulate either a value or an exception, depending upon the result of a function.
+ * A Result type that encapsulates either a value or an exception, depending upon the result of a function.
  * <p>
  * This class is Internal to the library and is not intended for public use on its own.
  * You should use it whenever this library returns a Result type, but you should not use it on its own.

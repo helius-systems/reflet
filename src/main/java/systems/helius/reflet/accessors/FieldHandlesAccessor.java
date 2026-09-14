@@ -93,7 +93,7 @@ public class FieldHandlesAccessor implements ContentAccessor {
      * @return the lookup, or {@code null} when access is denied and denial should be skipped.
      * @throws AccessorException if access is denied and denial should fail the search.
      */
-    private MethodHandles.Lookup getClassLookup(Object current,
+    private MethodHandles.@Nullable Lookup getClassLookup(Object current,
                                                 IntrospectionContext<?> context,
                                                 IntrospectionSettings settings) throws AccessorException {
         Result<MethodHandles.Lookup, Supplier<String>> lookupResult =

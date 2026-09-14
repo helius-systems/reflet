@@ -1,7 +1,5 @@
 package systems.helius.reflet.exceptions;
 
-import java.util.function.Predicate;
-
 /**
  * Policy invoked whenever an exception is thrown during content extraction or descent.
  */
@@ -24,17 +22,5 @@ public interface IntrospectionFailureHandler {
      */
     static IntrospectionFailureHandler propagateAll() {
         return context -> ExceptionResolution.propagate();
-    }
-
-    /**
-     * Creates a policy that skips exceptions matched by {@code predicate} and propagates the rest.
-     *
-     * @param predicate the predicate used to decide which exceptions are skipped.
-     * @return a handler that skips matching exceptions.
-     */
-    static IntrospectionFailureHandler skipIf(Predicate<Throwable> predicate) {
-        return context -> predicate.test(context.thrown())
-                ? ExceptionResolution.skip()
-                : ExceptionResolution.propagate();
     }
 }
