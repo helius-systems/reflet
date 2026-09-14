@@ -1,6 +1,6 @@
 package systems.helius.reflet;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import systems.helius.reflet.exceptions.*;
 
 import systems.helius.reflet.accessors.Content;

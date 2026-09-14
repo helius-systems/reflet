@@ -1,6 +1,6 @@
 package systems.helius.reflet.exceptions;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.lang.reflect.Field;

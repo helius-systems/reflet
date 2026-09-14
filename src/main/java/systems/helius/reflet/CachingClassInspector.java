@@ -29,15 +29,17 @@ public final class CachingClassInspector extends ClassInspector {
      */
     @Override
     public Map<Class<?>, List<Field>> getAllFieldsHierarchical(Class<?> clazz) {
-        return hierarchyCache.computeIfAbsent(clazz, c -> {
-            Map<Class<?>, List<Field>> raw = super.getAllFieldsHierarchical(c);
-            // Copy mutable lists and map to ensure immutability of the returned structure
-            Map<Class<?>, List<Field>> temp = new LinkedHashMap<>();
+        Map<Class<?>, List<Field>> result = hierarchyCache.get(clazz);
+        if (result == null) {
+            Map<Class<?>, List<Field>> raw = super.getAllFieldsHierarchical(clazz);
+            result = new LinkedHashMap<>();
             for (Map.Entry<Class<?>, List<Field>> entry : raw.entrySet()) {
-                temp.put(entry.getKey(), List.copyOf(entry.getValue()));
+                result.put(entry.getKey(), List.copyOf(entry.getValue()));
             }
-            return Collections.unmodifiableMap(temp);
-        });
+            result = Collections.unmodifiableMap(result);
+            hierarchyCache.put(clazz, result);
+        }
+        return result;
     }
 
     /**

@@ -1,7 +1,7 @@
 package systems.helius.reflet;
 
-import jakarta.annotation.Nullable;
-import systems.helius.reflet.util.Result;
+import org.jspecify.annotations.Nullable;
+import systems.helius.reflet.internal.Result;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;

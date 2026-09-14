@@ -1,4 +1,4 @@
-package systems.helius.reflet.util;
+package systems.helius.reflet.internal;
 
 import org.junit.jupiter.api.Test;
 

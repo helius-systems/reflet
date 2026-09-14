@@ -1,13 +1,16 @@
-package systems.helius.reflet.util;
+package systems.helius.reflet.internal;
 
-import jakarta.annotation.Nullable;
-
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * A Result type that encapsulate either a value or an exception, depending upon the result of a function.
+ * <p>
+ * This class is Internal to the library and is not intended for public use on its own.
+ * You should use it whenever this library returns a Result type, but you should not use it on its own.
+ * Depending on it is greatly not recommended, as it is not part of the public API and may change without notice.
  *
  * @param <V> type of the value
  * @param <E> type of the exception

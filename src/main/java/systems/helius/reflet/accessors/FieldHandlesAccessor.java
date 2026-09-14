@@ -1,9 +1,9 @@
 package systems.helius.reflet.accessors;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import systems.helius.reflet.*;
 import systems.helius.reflet.exceptions.AccessorException;
-import systems.helius.reflet.util.Result;
+import systems.helius.reflet.internal.Result;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -52,8 +52,8 @@ public class FieldHandlesAccessor implements ContentAccessor {
                         lookupManager.getPrivilegedLookup(entry.getKey(), context.rootLookup(), classLookup);
                 if (lookupResult.isErr()) {
                     if (settings.getAccessDenialPolicy() == AccessDenialPolicy.FAIL) {
-                        throw new AccessorException("Failed to acquire privileged lookup for class: " + entry.getKey()
-                                + ". " + lookupResult.error().orElseThrow().get());
+                        throw AccessorException.fatal("Failed to acquire privileged lookup for class: " + entry.getKey()
+                                + ". " + lookupResult.error().orElseThrow().get(), null);
                     }
                     continue;
                 }
@@ -93,7 +93,6 @@ public class FieldHandlesAccessor implements ContentAccessor {
      * @return the lookup, or {@code null} when access is denied and denial should be skipped.
      * @throws AccessorException if access is denied and denial should fail the search.
      */
-    @Nullable
     private MethodHandles.Lookup getClassLookup(Object current,
                                                 IntrospectionContext<?> context,
                                                 IntrospectionSettings settings) throws AccessorException {

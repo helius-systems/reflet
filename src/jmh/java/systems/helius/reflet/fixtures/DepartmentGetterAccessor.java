@@ -6,7 +6,7 @@ import systems.helius.reflet.exceptions.AccessorException;
 import systems.helius.reflet.accessors.Content;
 import systems.helius.reflet.accessors.ContentAccessor;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;

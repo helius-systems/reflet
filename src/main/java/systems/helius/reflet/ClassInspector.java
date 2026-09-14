@@ -1,7 +1,7 @@
 package systems.helius.reflet;
 
-import jakarta.annotation.Nullable;
-import systems.helius.reflet.util.Result;
+import org.jspecify.annotations.Nullable;
+import systems.helius.reflet.internal.Result;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
@@ -29,7 +29,7 @@ public sealed class ClassInspector permits CachingClassInspector {
      *
      * @param clazz to analyze
      * @return all the fields that members of clazz have. This is in the form of a map where the key
-     * the class of each superclass of the target class.
+     * is the class of each superclass of the target class. The map itself and its lists are unmodifiable.
      */
     public Map<Class<?>, List<Field>> getAllFieldsHierarchical(Class<?> clazz) {
         var fields = new LinkedHashMap<Class<?>, List<Field>>();
@@ -40,7 +40,7 @@ public sealed class ClassInspector permits CachingClassInspector {
                 && !superClass.equals(Enum.class)) {
             fields.putAll(getAllFieldsHierarchical(superClass));
         }
-        return fields;
+        return Collections.unmodifiableMap(fields);
     }
 
     /**
@@ -48,7 +48,7 @@ public sealed class ClassInspector permits CachingClassInspector {
      * Recursively checks up into the class tree of clazz to accumulate members.
      *
      * @param clazz to analyze
-     * @return all the fields that members of clazz have.
+     * @return all the fields that members of clazz have. The returned list is unmodifiable.
      */
     public List<Field> getAllFieldsFlat(Class<?> clazz) {
         Map<Class<?>, List<Field>> hierarchical = getAllFieldsHierarchical(clazz);
@@ -57,7 +57,7 @@ public sealed class ClassInspector permits CachingClassInspector {
         for (List<Field> fields : hierarchical.values()) {
             buffer.addAll(fields);
         }
-        return buffer;
+        return Collections.unmodifiableList(buffer);
     }
 
     /**

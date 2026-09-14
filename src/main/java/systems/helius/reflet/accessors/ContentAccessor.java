@@ -1,6 +1,6 @@
 package systems.helius.reflet.accessors;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
 import systems.helius.reflet.exceptions.AccessorException;
