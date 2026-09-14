@@ -48,6 +48,7 @@ public class BeanIntrospector {
         return found;
     }
 
+    @SuppressWarnings("unchecked") // unchecked cast to T covered by the static isAssignableFrom check
     protected <T> void depthFirstSearch(Object current,
                                         @Nullable Field holdingField,
                                         int depth,
@@ -60,7 +61,6 @@ public class BeanIntrospector {
 
         // Check if the current object is what we are looking for
         if (ClassInspector.evaluateTypingMatch(context.targetType(), current, (holdingField != null ? holdingField.getType() : null))) {
-            //noinspection unchecked covered by the static isAssignableFrom
             context.found().add((T) current);
             if (!settings.isEnterTargetType())
                 return;
@@ -74,7 +74,7 @@ public class BeanIntrospector {
     }
 
     protected <T> void descendInto(Object current, Field holdingField, int depth, IntrospectionContext<T> context, IntrospectionSettings settings) throws TracedAccessException {
-        Collection<Content> content = null;
+        Collection<Content> content;
         try {
             content = context.contentAccessor().extract(current, holdingField, context, settings);
         } catch (AccessorException | RuntimeException e) {

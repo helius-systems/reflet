@@ -4,6 +4,8 @@ import systems.helius.reflet.accessors.AccessorsChain;
 import systems.helius.reflet.accessors.ContentAccessor;
 import systems.helius.reflet.exceptions.IntrospectionFailureHandler;
 
+import java.util.Objects;
+
 /**
  * Configuration applied to a {@link BeanIntrospector} search.
  */
@@ -146,7 +148,7 @@ public class IntrospectionSettings {
          * @throws NullPointerException if {@code accessDenialPolicy} is {@code null}.
          */
         public Builder withAccessDenialPolicy(AccessDenialPolicy accessDenialPolicy) {
-            this.accessDenialPolicy = accessDenialPolicy;
+            this.accessDenialPolicy = Objects.requireNonNull(accessDenialPolicy, "accessDenialPolicy cannot be null");
             return this;
         }
 
@@ -158,7 +160,7 @@ public class IntrospectionSettings {
          * @throws NullPointerException if {@code exceptionHandler} is {@code null}.
          */
         public Builder withExceptionHandler(IntrospectionFailureHandler exceptionHandler) {
-            this.exceptionHandler = exceptionHandler;
+            this.exceptionHandler = Objects.requireNonNull(exceptionHandler, "exceptionHandler cannot be null");
             return this;
         }
 
@@ -192,7 +194,7 @@ public class IntrospectionSettings {
          * @throws NullPointerException if {@code contentAccessor} is {@code null}.
          */
         public Builder withContentAccessor(ContentAccessor contentAccessor) {
-            this.contentAccessor = contentAccessor;
+            this.contentAccessor = Objects.requireNonNull(contentAccessor, "contentAccessor cannot be null");
             return this;
         }
 

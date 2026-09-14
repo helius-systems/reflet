@@ -62,7 +62,8 @@ public sealed class ClassInspector permits CachingClassInspector {
 
     /**
      * Get all the fields and their private handle that are present in members of a given class.
-     * @param clazz to analyze
+     *
+     * @param clazz   to analyze
      * @param context the context of the lookup
      * @return a map where the key is the field and the value its access handle.
      * @throws IllegalAccessException if the context is not allowed to access the field
@@ -70,15 +71,15 @@ public sealed class ClassInspector permits CachingClassInspector {
     public Map<Field, VarHandle> getAllFieldsHandles(Class<?> clazz, MethodHandles.Lookup context) throws IllegalAccessException {
         Map<Field, VarHandle> handles = new LinkedHashMap<>();
         MethodHandles.Lookup privilegedLookup = context;
-        for (Map.Entry<Class<?>, List<Field>> fieldsByClass :  getAllFieldsHierarchical(clazz).entrySet()) {
+        for (Map.Entry<Class<?>, List<Field>> fieldsByClass : getAllFieldsHierarchical(clazz).entrySet()) {
             if (context.lookupClass() != fieldsByClass.getKey()) {
                 // This grants access to the private fields within superclasses
-                    Result<MethodHandles.Lookup, Supplier<String>> result = lookupManager.getPrivilegedLookup(fieldsByClass.getKey(), context, privilegedLookup);
-                    if (result.isOk()) {
-                        privilegedLookup = result.value().orElseThrow();
-                    } else {
-                        throw new IllegalAccessException("Couldn't get private access to the class: " + fieldsByClass.getKey().getCanonicalName() + ". " + result.error().orElseThrow());
-                    }
+                Result<MethodHandles.Lookup, Supplier<String>> result = lookupManager.getPrivilegedLookup(fieldsByClass.getKey(), context, privilegedLookup);
+                if (result.isOk()) {
+                    privilegedLookup = result.value().orElseThrow();
+                } else {
+                    throw new IllegalAccessException("Couldn't get private access to the class: " + fieldsByClass.getKey().getCanonicalName() + ". " + result.error().orElseThrow());
+                }
             }
             for (Field field : fieldsByClass.getValue()) {
                 handles.put(field, privilegedLookup.unreflectVarHandle(field));
@@ -89,8 +90,8 @@ public sealed class ClassInspector permits CachingClassInspector {
 
     /**
      *
-     * @param targetType the sought type
-     * @param value the object being checked
+     * @param targetType   the sought type
+     * @param value        the object being checked
      * @param originalType Because of implicit casting rules in the Java Language, primitives are implicitly converted
      *                     to their wrapper type when passed to a method that takes an Object. Passing the original
      *                     type of the field that held the value allows us to deduce the correct true type of the value.

@@ -45,8 +45,13 @@ class ClassInspectorTest {
     @Test
     void GivenInaccessibleClass_WhenGetAllFieldsHandles_ThenThrowsIllegalAccessException() {
         ClassInspector inspector = new ClassInspector();
-        assertThrows(IllegalAccessException.class, () -> {
-            inspector.getAllFieldsHandles(String.class, MethodHandles.lookup());
-        });
+        assertThrows(IllegalAccessException.class, () ->
+            inspector.getAllFieldsHandles(String.class, MethodHandles.lookup())
+        );
+    }
+
+    @Test
+    void GivenVoidOriginalClass_WhenEvaulateTypingMatchWithVoidTargetClass_ThenReturnsTrue() {
+        assertTrue(ClassInspector.evaluateTypingMatch(void.class, null, void.class));
     }
 }
