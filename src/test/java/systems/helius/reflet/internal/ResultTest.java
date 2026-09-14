@@ -40,6 +40,27 @@ class ResultTest {
         assertNotEquals(result1.hashCode(), result2.hashCode());
     }
 
+    @Test
+    void GivenResult_WhenComparedToNullAndDifferentType_ThenNotEqual() {
+        Result<String, Exception> result = Result.ok("Success");
+        assertEquals("Success", result.value().orElseThrow());
+    }
+
+    @Test
+    void GivenErrResults_WhenComparing_ThenEqualityReflectsError() {
+        Result<String, String> errA = Result.err("a");
+        Result<String, String> errB = Result.err("b");
+        Result<String, String> errAOther = Result.err("a");
+        assertEquals(errA, errAOther);
+        assertNotEquals(errA, errB);
+    }
+
+    @Test
+    void GivenOkAndErrResults_WhenToString_ThenContainsValueOrError() {
+        assertTrue(Result.ok("v").toString().contains("value=v"));
+        assertTrue(Result.err("e").toString().contains("error=e"));
+    }
+
     @SuppressWarnings("rawtypes")
     @Test
     void GivenResultWithBothValueAndError_WhenCreating_ThenThrowsException() throws NoSuchMethodException, InstantiationException, IllegalAccessException {

@@ -3,13 +3,17 @@ package systems.helius.reflet.accessors;
 import org.junit.jupiter.api.Test;
 import systems.helius.reflet.IntrospectionContext;
 import systems.helius.reflet.IntrospectionSettings;
+import systems.helius.reflet.exceptions.AccessorException;
+import systems.helius.reflet.exceptions.ExceptionResolution;
 import systems.helius.reflet.fixtures.Foo;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -203,6 +207,17 @@ class AccessorsChainTest {
     }
 
     @Test
+    void GivenBuilderWithMultipleAccessors_WhenInsertAfterNonFirstAccessor_ThenInsertsAtCorrectPosition() {
+        AccessorsChain.Builder builder = AccessorsChain.builder(false)
+                .addLast(new AlphaAccessor())
+                .addLast(new BetaAccessor());
+
+        builder.insertAfter(new GammaAccessor(), BetaAccessor.class);
+
+        assertEquals(List.of(AlphaAccessor.class, BetaAccessor.class, GammaAccessor.class), accessorTypes(builder.build()));
+    }
+
+    @Test
     void GivenBuilderWithoutTarget_WhenReplace_ThenThrows() {
         AccessorsChain.Builder builder = AccessorsChain.builder(false);
 
@@ -220,5 +235,106 @@ class AccessorsChainTest {
         assertTrue(builder.chain.stream().anyMatch(IterativeMapAccessor.class::isInstance));
     }
 
+    @Test
+    void GivenFailingAccessor_WhenHandlerSkips_ThenReturnsEmptyCollection() throws AccessorException {
+        AccessorsChain chain = AccessorsChain.builder(false)
+                .addLast(new FailingAccessor(new IllegalStateException("boom")))
+                .build();
+
+        IntrospectionSettings settings = IntrospectionSettings.builder()
+                .withExceptionHandler(context -> ExceptionResolution.skip())
+                .build();
+
+        assertEquals(Collections.emptyList(), chain.extract(new Object(), null, testContext(), settings));
+    }
+
+    @Test
+    void GivenFailingAccessor_WhenHandlerSubstitutes_ThenReturnsReplacementContent() throws AccessorException {
+        AccessorsChain chain = AccessorsChain.builder(false)
+                .addLast(new FailingAccessor(new IllegalStateException("boom")))
+                .build();
+
+        Content replacement = new Content("fallback", null);
+        IntrospectionSettings settings = IntrospectionSettings.builder()
+                .withExceptionHandler(context -> ExceptionResolution.substitute(List.of(replacement)))
+                .build();
+
+        assertEquals(List.of(replacement), chain.extract(new Object(), null, testContext(), settings));
+    }
+
+    @Test
+    void GivenFatalAccessorException_WhenExtracting_ThenPropagatesWithoutHandling() {
+        AccessorsChain chain = AccessorsChain.builder(false)
+                .addLast(new FailingAccessor(AccessorException.fatal("fatal", new IllegalStateException("boom"))))
+                .build();
+
+        AccessorException exception = assertThrows(
+                AccessorException.class,
+                () -> chain.extract(new Object(), null, testContext(), IntrospectionSettings.builder().build())
+        );
+
+        assertTrue(exception.isFatal());
+        assertEquals("fatal", exception.getMessage());
+    }
+
+    @Test
+    void GivenNonFatalAccessorException_WhenHandlerPropagates_ThenWrapsFailureAsFatal() {
+        AccessorsChain chain = AccessorsChain.builder(false)
+                .addLast(new FailingAccessor(new AccessorException("non-fatal")))
+                .build();
+
+        IntrospectionSettings settings = IntrospectionSettings.builder()
+                .withExceptionHandler(context -> ExceptionResolution.propagate())
+                .build();
+
+        AccessorException exception = assertThrows(
+                AccessorException.class,
+                () -> chain.extract(new Object(), null, testContext(), settings)
+        );
+
+        assertTrue(exception.isFatal());
+        assertTrue(exception.getMessage().contains("FailingAccessor failed to extract content from Object"));
+    }
+
+    @Test
+    void GivenNoAccessorAcceptsType_WhenExtract_ThenReturnsEmptyCollection() throws AccessorException {
+        AccessorsChain chain = AccessorsChain.builder(false)
+                .addLast(new AlphaAccessor())
+                .addLast(new BetaAccessor())
+                .build();
+
+        assertEquals(Collections.emptyList(),
+                chain.extract(new Object(), null, testContext(), IntrospectionSettings.builder().build()));
+    }
+
+    private static IntrospectionContext<Object> testContext() {
+        return new IntrospectionContext<>(Object.class, MethodHandles.lookup(), Set.of(), Set.of(), AccessorsChain.builder(false).build());
+    }
+
+    private static final class FailingAccessor implements ContentAccessor {
+        private final Throwable throwable;
+
+        private FailingAccessor(Throwable throwable) {
+            this.throwable = throwable;
+        }
+
+        @Override
+        public boolean accepts(Class<?> current, java.lang.reflect.Field holdingField) {
+            return true;
+        }
+
+        @Override
+        public Collection<Content> extract(Object current, java.lang.reflect.Field holdingField,
+                                           IntrospectionContext<?> context,
+                                           IntrospectionSettings settings) throws AccessorException {
+            if (throwable instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            if (throwable instanceof AccessorException accessorException) {
+                throw accessorException;
+            }
+            throw new RuntimeException(throwable);
+        }
+    }
 
 }

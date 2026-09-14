@@ -1,6 +1,7 @@
 package systems.helius.reflet;
 
 import org.junit.jupiter.api.Test;
+import systems.helius.reflet.fixtures.BarEnum;
 import systems.helius.reflet.fixtures.ChildClassA;
 import systems.helius.reflet.fixtures.Foo;
 import systems.helius.reflet.fixtures.Superclass;
@@ -11,6 +12,7 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -57,6 +59,31 @@ class ClassInspectorTest {
     @Test
     void GivenVoidOriginalClass_WhenEvaluateTypingMatchWithVoidTargetClass_ThenReturnsTrue() {
         assertTrue(ClassInspector.evaluateTypingMatch(void.class, null, void.class));
+    }
+
+    @Test
+    void GivenVoidWrapperOriginalType_WhenEvaluateTypingMatch_ThenReturnsTrue() {
+        assertTrue(ClassInspector.evaluateTypingMatch(Object.class, new Object(), Void.class));
+    }
+
+    @Test
+    void GivenEnum_WhenGetAllFieldsHierarchical_ThenStopsAtEnumSuperclass() {
+        Map<Class<?>, List<Field>> fields = getInstance().getAllFieldsHierarchical(BarEnum.class);
+        assertTrue(fields.containsKey(BarEnum.class));
+        assertFalse(fields.containsKey(Enum.class));
+    }
+
+    @Test
+    void GivenTypeWithoutSuperclass_WhenGetAllFieldsHierarchical_ThenContainsOnlyThatType() {
+        Map<Class<?>, List<Field>> fields = getInstance().getAllFieldsHierarchical(Runnable.class);
+        assertEquals(Set.of(Runnable.class), fields.keySet());
+    }
+
+    @Test
+    void GivenLookupClassMatchingTarget_WhenGetAllFieldsHandles_ThenUsesProvidedLookup() throws IllegalAccessException {
+        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(Foo.class, MethodHandles.lookup());
+        Map<Field, VarHandle> handles = getInstance().getAllFieldsHandles(Foo.class, lookup);
+        assertEquals(Foo.class.getDeclaredFields().length, handles.size());
     }
 
     @Test
