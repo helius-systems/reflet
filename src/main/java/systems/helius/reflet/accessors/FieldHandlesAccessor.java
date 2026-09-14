@@ -3,7 +3,6 @@ package systems.helius.reflet.accessors;
 import jakarta.annotation.Nullable;
 import systems.helius.reflet.*;
 import systems.helius.reflet.exceptions.AccessorException;
-import systems.helius.reflet.exceptions.TracedAccessException;
 import systems.helius.reflet.util.Result;
 
 import java.lang.invoke.MethodHandles;
@@ -61,12 +60,12 @@ public class FieldHandlesAccessor implements ContentAccessor {
                 classLookup = lookupResult.value().orElseThrow();
             }
 
-            accessFields(current, settings, entry, classLookup, result);
+            accessFields(current, entry, classLookup, result);
         }
         return result;
     }
 
-    private static void accessFields(Object current, IntrospectionSettings settings, Map.Entry<Class<?>, List<Field>> entry, MethodHandles.Lookup classLookup, ArrayList<Content> result) throws AccessorException {
+    private static void accessFields(Object current, Map.Entry<Class<?>, List<Field>> entry, MethodHandles.Lookup classLookup, ArrayList<Content> result) throws AccessorException {
         for (Field field : entry.getValue()) {
             try {
                 if (Modifier.isStatic(field.getModifiers()))

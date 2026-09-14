@@ -78,7 +78,8 @@ public sealed class ClassInspector permits CachingClassInspector {
                 if (result.isOk()) {
                     privilegedLookup = result.value().orElseThrow();
                 } else {
-                    throw new IllegalAccessException("Couldn't get private access to the class: " + fieldsByClass.getKey().getCanonicalName() + ". " + result.error().orElseThrow());
+                    throw new IllegalAccessException("Couldn't get private access to the class: "
+                            + fieldsByClass.getKey().getCanonicalName() + ". " + result.error().orElseThrow().get());
                 }
             }
             for (Field field : fieldsByClass.getValue()) {

@@ -4,6 +4,13 @@ import jakarta.annotation.Nullable;
 
 import java.io.Serial;
 
+/**
+ * Exception thrown when a {@link systems.helius.reflet.accessors.ContentAccessor} fails to extract content from a given object.
+ * These exceptions are caught by the {@link IntrospectionFailureHandler} provided to the {@link systems.helius.reflet.IntrospectionSettings}
+ * and handled according to the configured policy.
+ * <p>
+ * This exception can be marked as fatal, in which case it will not be handled and will immediately propagate up the call stack.
+ */
 public class AccessorException extends Exception {
     @Serial
     private static final long serialVersionUID = 1L;

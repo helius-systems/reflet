@@ -16,7 +16,7 @@ public class IntrospectionSettings {
     protected final AccessDenialPolicy accessDenialPolicy;
 
     /**
-     * Policy used for thrown extraction and descent exceptions.
+     * Policy used for thrown exceptions during content extraction and descent.
      */
     protected final IntrospectionFailureHandler exceptionHandler;
 

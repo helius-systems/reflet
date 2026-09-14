@@ -87,8 +87,7 @@ public final class Result<V, E> {
     @Override
     public String toString() {
         return "Result{" +
-                (value != null ? "value=" + value : "") +
-                (error != null ? ", error=" + error : "") +
+                (value != null ? "value=" + value : "error=" + error) +
                 '}';
     }
 }
