@@ -14,16 +14,13 @@ public class BeanIntrospector {
     protected final IntrospectionSettings settings;
 
     public BeanIntrospector() {
-        this(null, null);
+        this(null);
     }
 
     public BeanIntrospector(IntrospectionSettings settings) {
-        this(settings, null);
+        this.settings = settings != null ? settings : new IntrospectionSettings();
     }
 
-    public BeanIntrospector(@Nullable IntrospectionSettings settings, @Nullable ClassInspector classInspector) {
-        this.settings = Objects.requireNonNullElseGet(settings, IntrospectionSettings::new);
-    }
 
     /**
      * Seek within the root and all children for instances of a given type.
